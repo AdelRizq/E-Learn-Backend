@@ -6,7 +6,7 @@ const {
 
 class Learner extends Model {}
 
-Admin.init({
+Learner.init({
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,

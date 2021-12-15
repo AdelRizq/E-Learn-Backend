@@ -6,7 +6,7 @@ const {
 
 class Instructor extends Model {}
 
-Admin.init({
+Instructor.init({
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
