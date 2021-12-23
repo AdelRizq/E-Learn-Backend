@@ -8,4 +8,14 @@ module.exports = async() => {
         foreignKey: 'instructor_id'
     });
     Course.belongsTo(Instructor);
+    const admin = await Admin.create({
+        name: "Mahboub",
+        email: "ahmed@gmail.com",
+        password: "ffffdf",
+        firstname: "Ahmed",
+        lastname: "Mahboub",
+        birthdate: "9-3-99"
+
+    });
+    console.log(admin);
 }
