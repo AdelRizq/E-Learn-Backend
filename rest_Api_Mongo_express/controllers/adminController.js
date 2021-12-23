@@ -21,28 +21,20 @@ const addAdmin = async (req, res) => {
 }
 
 // 2. Get Admin
-const getAdminByEmail = async (req, res) => {
-    const admin = await Admin.findOne({ where: { email: req.body.email } });
-    res.status(200).send(admin);
-    console.log(admin);
-}
-
-const getAdminByUsername = async (req, res) => {
-    const admin = await Admin.findOne({ where: { username: req.body.username } });
+const getAdmin = async (req, res) => {
+    const admin = await Admin.findOne({ where: { username: req.params.username } });
     res.status(200).send(admin);
     console.log(admin);
 }
 
 // 3. Delete Admin
 const deleteAdmin = async (req, res) => {
-    await Admin.destroy(req.params.username);
+    await Admin.destroy({ where: { username: req.params.username } });
     res.status(200).send("Admin Deleted Successfully");
 }
 
-
 module.exports = {
     addAdmin,
-    getAdminByEmail,
-    getAdminByUsername,
+    getAdmin,
     deleteAdmin
 }

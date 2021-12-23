@@ -4,8 +4,7 @@ const router = require('express').Router()
 
 router.post('/addAdmin', adminController.addAdmin)
 
-router.get('/:email', adminController.getAdminByEmail)
-router.get('/:username', adminController.getAdminByUsername)
+router.get('/:username', adminController.getAdmin)
 
 router.delete('/:username', adminController.deleteAdmin)
 
