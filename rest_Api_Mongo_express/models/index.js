@@ -7,7 +7,6 @@ const sequelize = new Sequelize(
     dbConfig.PASSWORD, {
         host: dbConfig.HOST,
         dialect: dbConfig.dialect,
-        operatorsAliases: false,
 
         pool: {
             max: dbConfig.pool.max,
@@ -30,7 +29,7 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-db.admin = require('./adminModel.js') (sequelize, DataTypes);
+db.admins = require('./adminModel.js') (sequelize, DataTypes);
 
 db.sequelize.sync({
     force: false

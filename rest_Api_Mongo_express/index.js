@@ -9,23 +9,28 @@ let corsOptions = {
     origin: 'https://localhost:4001'
 }
 
+// ^ Middleware
 app.use(cors(corsOptions))
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }))
 
-// routes 
+// ^ Routers
+const router = require('./routes/adminRouter.js');
+app.use('/api/admin', router);
+
+// ^ Routes 
 app.get('/', (req, res) => {
     res.json({"works": "fine"})
 })
 
-// Errors
+// ^ Errors
 app.use(function(err, req, res, next) {
     res.status(422).send({
         error: err.message
     });
 });
 
-// listen to requests
+// ^ Listen to requests
 app.listen(PORT, function() {
     console.log(`Listening on port: ${PORT}`);
 });
