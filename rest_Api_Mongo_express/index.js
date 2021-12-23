@@ -1,17 +1,22 @@
+const cors = require('cors')
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-// setup  express app 
+
 const app = express();
+const PORT = process.env.port || 4000
 
-// connect to db 
-mongoose.connect('mongodb://localhost/ninjago');
-mongoose.Promise = global.Promise;
+let corsOptions = {
+    origin: 'https://localhost:4001'
+}
 
+app.use(cors(corsOptions))
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }))
 
 // routes 
-app.use('/api', require('./routes/api'));
+app.get('/', (req, res) => {
+    res.json({"works": "fine"})
+})
 
 // Errors
 app.use(function(err, req, res, next) {
@@ -21,6 +26,6 @@ app.use(function(err, req, res, next) {
 });
 
 // listen to requests
-app.listen(process.env.port || 4000, function() {
-    console.log('now listing to requests');
+app.listen(PORT, function() {
+    console.log(`Listening on port: ${PORT}`);
 });
