@@ -1,23 +1,19 @@
-const dbconfig = require('../config/db.config');
-const {
-    Sequelize,
-    DataTypes
-} = require('sequelize');
-
+const dbConfig = require('../config/db.config');
+const { Sequelize, DataTypes } = require('sequelize');
 
 const sequelize = new Sequelize(
-    dbconfig.DB,
-    dbconfig.USER,
-    dbconfig.PASSWORD, {
-        host: dbconfig.HOST,
-        dialect: dbconfig.dialect,
-        opperatorsAliases: false,
+    dbConfig.DB,
+    dbConfig.USER,
+    dbConfig.PASSWORD, {
+        host: dbConfig.HOST,
+        dialect: dbConfig.dialect,
+        operatorsAliases: false,
 
         pool: {
-            max: dbconfig.pool.max,
-            min: dbconfig.pool.min,
-            acquire: dbconfig.pool.acquire,
-            idle: dbconfig.pool.idle
+            max: dbConfig.pool.max,
+            min: dbConfig.pool.min,
+            acquire: dbConfig.pool.acquire,
+            idle: dbConfig.pool.idle
         }
     }
 );
@@ -34,7 +30,7 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-db.ninjas = require('./ninjaModel.js')(sequelize, DataTypes);
+db.admin = require('./adminModel.js') (sequelize, DataTypes);
 
 db.sequelize.sync({
     force: false
