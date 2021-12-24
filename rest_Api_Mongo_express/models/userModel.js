@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('admin', {
+    return sequelize.define('user', {
         _id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -28,5 +28,20 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATEONLY,
             allowNull: false
         },
+        coursesIds: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            // https://stackoverflow.com/questions/41860792/how-can-i-have-a-datatype-of-array-in-mysql-sequelize-instance
+            get() {
+                return this.getDataValue('coursesIds').split(';')
+            },
+            set(val) {
+               this.setDataValue('coursesIds',val.join(';'));
+            },
+        },
+        type: { // {"learner", "instructor"}
+            type: DataTypes.STRING,
+            allowNull: false
+        }
     });
 }
