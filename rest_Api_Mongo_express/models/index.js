@@ -29,7 +29,10 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+db.users = require('./userModel') (sequelize, DataTypes);
+db.courses = require('./courseModel') (sequelize, DataTypes);
 db.admins = require('./adminModel.js') (sequelize, DataTypes);
+db.activities = require('./activityModel') (sequelize, DataTypes);
 
 db.sequelize.sync({
     force: false
