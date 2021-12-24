@@ -1,0 +1,10 @@
+{
+    "conventionalCommits.scopes": [
+        "File Structure",
+        "Express",
+        "Models",
+        "Controllers",
+        "User"
+    ],
+    "cSpell.ignoreWords": ["dateonly"]
+}
