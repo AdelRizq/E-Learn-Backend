@@ -1,21 +1,21 @@
 {
-  "name": "rest_api_mongo_express",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "ahmed mahboub",
-  "license": "ISC",
-  "dependencies": {
-    "body-parser": "^1.19.1",
-    "cors": "^2.8.5",
-    "express": "^4.17.2",
-    "mysql2": "^2.3.3",
-    "sequelize": "^6.12.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.15"
-  }
+    "name": "lms",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "ahmed mahboub",
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^1.19.1",
+        "cors": "^2.8.5",
+        "express": "^4.17.2",
+        "mysql2": "^2.3.3",
+        "sequelize": "^6.12.0"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.15"
+    }
 }
