@@ -1,8 +1,10 @@
 const uuid = require("uuid");
 const { courses } = require("../models");
+const httpStatus = require("http-status");
 const db = require("../models");
 
 const User = db.users;
+const UserCourses = db.userCourses;
 
 // 1. Authentication
 const signup = async (req, res) => {
@@ -19,7 +21,9 @@ const signup = async (req, res) => {
     };
 
     const user = await User.create(info);
-    res.status(200).send(user);
+
+    // TODO: generate token and send it back
+    res.status(httpStatus.OK).send(user._id);
     console.log(user);
 };
 
@@ -28,17 +32,16 @@ const login = async (req, res) => {
         where: { email: req.body.email, password: req.body.password },
     });
 
-    console.log(user);
-    if (user) res.status(200).send(user);
-    else res.status(200).send("Not Found");
+    if (user) res.status(httpStatus.OK).send(user);
+    else
+        res.status(httpStatus.UNAUTHORIZED).send("Incorrect email or password");
 };
 
 const forgotPassword = async (req, res) => {
     const user = await User.findOne({ where: { email: req.body.email } });
 
-    console.log(user);
-    if (user) res.status(200).send(user);
-    else res.status(200).send("Not Found");
+    if (user) res.status(httpStatus.OK).send(user);
+    else res.status(httpStatus.UNAUTHORIZED).send("Email Not Found");
 };
 
 const resetPassword = async (req, res) => {
@@ -46,12 +49,13 @@ const resetPassword = async (req, res) => {
         { password: req.body.password },
         {
             where: {
+                // TODO: revise it, how FE will get hte email (we don't have session also)
                 email: req.body.email,
             },
         }
     );
 
-    res.status(200).send(user);
+    res.status(httpStatus.OK).send(user);
 };
 
 // 2. Get User by Username
@@ -59,8 +63,9 @@ const getUser = async (req, res) => {
     const user = await User.findOne({
         where: { username: req.params.username },
     });
-    res.status(200).send(user);
-    console.log(user);
+
+    if (user) res.status(httpStatus.OK).send(user);
+    else res.status(httpStatus.NOT_FOUND).send("Not Found");
 };
 
 // 3. Get Users for manage users page
@@ -68,11 +73,10 @@ const getUsers = async (req, res) => {
     const users = await User.findAll({
         attributes: ["username", "type"],
     });
-    res.status(200).send(users);
+    res.status(httpStatus.OK).send(users);
 };
 
 const upgradeLearner = async (req, res) => {
-    // if instructor return already instructor
     const user = await User.update(
         { type: "instructor" },
         {
@@ -81,30 +85,28 @@ const upgradeLearner = async (req, res) => {
             },
         }
     );
-    res.status(200).send(user);
+
+    res.status(httpStatus.OK).send(user);
 };
 
 const addCourse = async (req, res) => {
-    let coursesIds = await User.findOne(
-        { where: { username: req.params.username } }
-        // { attributes: "coursesIds" }
-    );
-    console.log(`coursesIds: ${coursesIds}`);
+    const userCourse = await UserCourses.create({
+        userId: req.params._id,
+        courseId: req.body.courseId,
+    });
 
-    const added = await User.update(
-        {
-            coursesIds: coursesIds + ";" + req.body.courseId,
-        },
-        { where: { username: req.params.username } }
-    );
-
-    res.status(200).send(added);
+    if (userCourse) res.status(httpStatus.OK).send(userCourse);
+    else
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(
+            "Didn't added, please try again"
+        );
 };
 
 // 4. Delete User
 const deleteUser = async (req, res) => {
+    // TODO: use the id from session instead of username
     await User.destroy({ where: { username: req.params.username } });
-    res.status(200).send("User Deleted Successfully");
+    res.status(httpStatus.OK).send("User Deleted Successfully");
 };
 
 module.exports = {

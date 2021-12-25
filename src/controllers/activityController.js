@@ -1,3 +1,4 @@
+const httpStatus = require("http-status");
 const uuid = require("uuid");
 const db = require("../models");
 
@@ -14,7 +15,7 @@ const addActivity = async (req, res) => {
     };
 
     const activity = await Activity.create(info);
-    res.status(200).send(activity);
+    res.status(httpStatus.OK).send(activity);
     console.log(activity);
 };
 
@@ -24,22 +25,23 @@ const getActivities = async (req, res) => {
         where: { courseId: req.params.courseId },
     });
 
-    res.status(200).send(activities);
-    console.log(activities);
+    if (activities) res.status(httpStatus.OK).send(activities);
+    else res.status(httpStatus.NO_CONTENT).send("No Activities Found");
 };
 
 const getActivity = async (req, res) => {
     const activity = await Activity.findOne({
         where: { id: req.params.id },
     });
-    res.status(200).send(activity);
-    console.log(activity);
+
+    if (activity) res.status(httpStatus.OK).send(activity);
+    else res.status(httpStatus.NOT_FOUND).send("Course Not Found");
 };
 
 // 3. Delete Activity
 const deleteActivity = async (req, res) => {
     await Activity.destroy({ where: { id: req.body.id } });
-    res.status(200).send("Activity Deleted Successfully");
+    res.status(httpStatus.OK).send("Activity Deleted Successfully");
 };
 
 module.exports = {
