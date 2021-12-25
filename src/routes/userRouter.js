@@ -10,4 +10,6 @@ router
     .put(userController.upgradeLearner)
     .delete(userController.deleteUser);
 
+router.put("/:username/addCourse", userController.addCourse);
+
 module.exports = router;

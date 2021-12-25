@@ -1,3 +1,5 @@
+const uuid = require("uuid");
+const { courses } = require("../models");
 const db = require("../models");
 
 const User = db.users;
@@ -5,6 +7,7 @@ const User = db.users;
 // 1. Authentication
 const signup = async (req, res) => {
     const info = {
+        // _id: uuid.v4(),
         username: req.body.username,
         email: req.body.email,
         password: req.body.password,
@@ -68,22 +71,39 @@ const getUsers = async (req, res) => {
     res.status(200).send(users);
 };
 
-const upgradeUser = async (req, res) => {
+const upgradeLearner = async (req, res) => {
     // if instructor return already instructor
     const user = await User.update(
         { type: "instructor" },
         {
             where: {
-                username: req.body.username,
+                username: req.params.username,
             },
         }
     );
     res.status(200).send(user);
 };
 
+const addCourse = async (req, res) => {
+    let coursesIds = await User.findOne(
+        { where: { username: req.params.username } }
+        // { attributes: "coursesIds" }
+    );
+    console.log(`coursesIds: ${coursesIds}`);
+
+    const added = await User.update(
+        {
+            coursesIds: coursesIds + ";" + req.body.courseId,
+        },
+        { where: { username: req.params.username } }
+    );
+
+    res.status(200).send(added);
+};
+
 // 4. Delete User
 const deleteUser = async (req, res) => {
-    await User.destroy({ where: { username: req.body.username } });
+    await User.destroy({ where: { username: req.params.username } });
     res.status(200).send("User Deleted Successfully");
 };
 
@@ -94,6 +114,7 @@ module.exports = {
     resetPassword,
     getUser,
     getUsers,
-    upgradeUser,
+    upgradeLearner,
+    addCourse,
     deleteUser,
 };
