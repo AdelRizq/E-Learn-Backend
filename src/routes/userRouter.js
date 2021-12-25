@@ -2,15 +2,12 @@ const userController = require("../controllers/userController.js");
 
 const router = require("express").Router();
 
-router.post("/login", userController.login);
-router.post("/signup", userController.signup);
-router.post("/forgot-password", userController.forgotPassword);
-router.post("/reset-password", userController.resetPassword);
+router.get("/", userController.getUsers);
 
-router.get("/users", userController.getUsers);
-router.put("/upgrade-user", userController.upgradeUser);
-
-router.get("/:username", userController.getUser);
-router.delete("/delete-user", userController.deleteUser);
+router
+    .route("/:username")
+    .get(userController.getUser)
+    .put(userController.upgradeLearner)
+    .delete(userController.deleteUser);
 
 module.exports = router;
