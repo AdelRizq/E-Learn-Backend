@@ -28,8 +28,34 @@ db.sequelize = sequelize;
 
 db.users = require("./userModel")(sequelize, DataTypes);
 db.courses = require("./courseModel")(sequelize, DataTypes);
-db.admins = require("./adminModel.js")(sequelize, DataTypes);
 db.activities = require("./activityModel")(sequelize, DataTypes);
+
+db.userCourses = require("./userCoursesModel")(sequelize, DataTypes);
+
+db.users.belongsToMany(db.courses, {
+    through: db.userCourses,
+    onDelete: "RESTRICT",
+    onUpdate: "RESTRICT",
+});
+
+db.courses.belongsToMany(db.users, {
+    through: db.userCourses,
+    onDelete: "RESTRICT",
+    onUpdate: "RESTRICT",
+});
+
+db.courses.belongsTo(db.users, {
+    as: "instructor",
+});
+
+db.courses.hasMany(db.activities, {
+    foreignKey: "courseId",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+});
+db.activities.belongsTo(db.courses, {
+    foreignKey: "courseId",
+});
 
 db.sequelize
     .sync({

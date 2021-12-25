@@ -3,8 +3,8 @@ module.exports = (sequelize, DataTypes) => {
         _id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
             allowNull: false,
+            autoIncrement: true,
         },
         name: {
             type: DataTypes.STRING,
@@ -12,10 +12,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         type: {
             type: DataTypes.STRING, // {"youtube", "pdf"}
-            allowNull: false,
-        },
-        courseId: {
-            type: DataTypes.INTEGER,
             allowNull: false,
         },
         link: {
