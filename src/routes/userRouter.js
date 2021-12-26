@@ -1,14 +1,19 @@
 const userController = require("../controllers/userController.js");
-
+const auth = require("../auth/auth");
 const router = require("express").Router();
 
-router.get("/", userController.getUsers);
+router
+    .route("/")
+    .get(auth.verifyToken, userController.getUsers);
+
+router
+    .route("/me")
+    .get(auth.verifyToken, userController.getUser)
 
 router
     .route("/:username")
-    .get(userController.getUser)
-    .put(userController.upgradeLearner)
-    .delete(userController.deleteUser);
+    .put(auth.verifyToken, userController.upgradeLearner)
+    .delete(auth.verifyToken, userController.deleteUser);
 
 router.put("/:username/addCourse", userController.addCourse);
 
