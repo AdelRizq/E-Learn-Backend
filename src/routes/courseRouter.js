@@ -5,7 +5,7 @@ const router = require("express").Router();
 router
     .route("/:id")
     .get(courseController.getCourse)
-    .put(courseController.enrollLearner)
+    .put(courseController.enrollLearners)
     .delete(courseController.deleteCourse);
 
 router
