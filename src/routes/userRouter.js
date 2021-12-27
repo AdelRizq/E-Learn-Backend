@@ -15,6 +15,8 @@ router
     .put(auth.verifyToken, userController.upgradeLearner)
     .delete(auth.verifyToken, userController.deleteUser);
 
-router.put("/:username/addCourse", userController.addCourse);
+router
+    .route("/:username/addCourse")
+    .put(auth.verifyToken, userController.addCourse);
 
 module.exports = router;
