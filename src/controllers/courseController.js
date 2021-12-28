@@ -6,45 +6,95 @@ const {
     userCourses
 } = require("../models");
 const db = require("../models");
+const {
+    use
+} = require("../routes");
 
 const Course = db.courses;
+const User = db.users;
+
 
 // 1. Add Course
 // instructor or admin accounts 
 const addCourse = async(req, res) => {
 
-    const info = {
-        // _id: uuid.v4(),
-        name: req.body.name,
-        syllabus: req.body.syllabus,
-        instructorId: req.body.instructor, // TODO: from body or get it from session (instructor will create the course himself)
-    };
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+        if (err) {
 
-    const course = await Course.create(info);
-    res.status(httpStatus.OK).send(course);
-    console.log(course);
+            res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message
+            });
+        } else {
+            const user = await User.findOne({
+                where: {
+                    username: authData.username
+                },
+            });
+            console.log(user);
+            if (user) {
+                if (user.type == 'admin' || user.type == 'instructor') {
+                    // Do Your function 
+                    const info = {
+                        name: req.body.name,
+                        syllabus: req.body.syllabus,
+                        instructorId: user._id, // TODO: from body or get it from session (instructor will create the course himself)
+                    };
+
+                    const course = await Course.create(info);
+                    res.status(httpStatus.OK).send(course);
+
+
+                } else {
+                    res.status(httpStatus.UNAUTHORIZED).send({
+                        message: "you must be an admin or instructor to do this operation "
+                    });
+                }
+
+            } else {
+                res.status(httpStatus.NOT_FOUND).send({
+                    message: "user Not Found"
+                });
+            }
+        }
+    });
+
 };
 
 // 2. Get Courses
 // any authrized user  
 const getCourse = async(req, res) => {
-    const course = await Course.findOne({
-        where: {
-            _id: req.params.id
-        },
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+        if (err) {
+            res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message
+            });
+        } else {
+
+            const course = await Course.findOne({
+                where: {
+                    _id: req.params.id
+                },
+            });
+
+            if (course) {
+                res.status(httpStatus.OK).send(course);
+            } else {
+                res.status(httpStatus.NOT_FOUND).send({
+                    message: "Course Not Found"
+                });
+            }
+
+        }
     });
 
-    if (course) res.status(httpStatus.OK).send(course);
-    else res.status(httpStatus.NOT_FOUND).send("Course Not Found");
-    console.log(course);
 };
 
-// 
+// any authrized user  
 const getCourses = async(req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: "invalid token"
+                message: err.message
             });
         } else {
 
@@ -52,17 +102,24 @@ const getCourses = async(req, res) => {
                 attributes: ["name", "syllabus", "instructorId"],
             });
             if (courses) {
-                res.status(httpStatus.OK).send(courses);
+                {
+                    res.status(httpStatus.OK).send(courses);
+                }
             } else {
-                res.status(httpStatus.NO_CONTENT).send("No Courses Found");
+                {
+                    res.status(httpStatus.NO_CONTENT).send({
+                        message: "No Courses Found"
+                    });
+                }
             }
         }
     });
 };
 
 const enrollLearners = async(req, res) => {
-    const learners = req.body.learners; // ! learners are array of ids
-    let courseId = req.body.id;
+    const learners = req.body.learners; // ! learners are array of ids [ids] 
+    let courseId = req.params.id;
+
 
     // TODO: need test
     await userCourses.bulkCreate(
@@ -80,12 +137,51 @@ const enrollLearners = async(req, res) => {
 // 3. Delete Course
 const deleteCourse = async(req, res) => {
 
-    await Course.destroy({
-        where: {
-            _id: req.params.id
+
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+        if (err) {
+
+            res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message
+            });
+        } else {
+            const user = await User.findOne({
+                where: {
+                    username: authData.username
+                },
+            });
+            const course = await Course.findOne({
+                where: {
+                    _id: req.params.id
+                },
+            });
+
+            if (user && course) {
+                if (user.type == 'admin' || user._id == course.instructorId) {
+                    // Do Your function 
+
+                    await Course.destroy({
+                        where: {
+                            _id: req.params.id
+                        }
+                    });
+                    res.status(httpStatus.OK).send({
+                        message: "Course Deleted Successfully"
+                    });
+
+                } else {
+                    res.status(httpStatus.UNAUTHORIZED).send({
+                        message: "you must be an admin  or instructor this course to do this operation "
+                    });
+                }
+
+            } else {
+                res.status(httpStatus.NOT_FOUND).send({
+                    message: "course Not Found"
+                });
+            }
         }
     });
-    res.status(httpStatus.OK).send("Course Deleted Successfully");
 };
 
 module.exports = {
