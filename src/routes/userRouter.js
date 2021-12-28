@@ -16,7 +16,7 @@ router
     .delete(auth.verifyToken, userController.deleteUser);
 
 router
-    .route("/:username/addCourse")
-    .put(auth.verifyToken, userController.addCourse);
+    .route("/:id/enrollMe")
+    .post(auth.verifyToken, userController.enrollMe);
 
 module.exports = router;

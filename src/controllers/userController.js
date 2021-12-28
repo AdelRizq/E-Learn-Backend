@@ -12,13 +12,10 @@ const {
 
 const User = db.users;
 const UserCourses = db.userCourses;
+const constants = require('../config/constants.config')
 
 // 1. Authentication
 
-const creatToken = async(userInfo) => {
-    const token = jwt.sign(userInfo, secret);
-    return token;
-}
 
 const signup = async(req, res) => {
     const info = {
@@ -36,6 +33,7 @@ const signup = async(req, res) => {
     try {
         const user = await User.create(info);
 
+        info._id = user._id;
         res.status(httpStatus.CREATED).send({
             token: jwt.sign(info, config.SECRET_KEY, {
                 expiresIn: config.JWT_EXPIRES_IN
@@ -61,6 +59,7 @@ const login = async(req, res) => {
 
 
     const info = {
+        _id: user._id,
         username: user.username,
         email: user.email,
         password: user.password,
@@ -85,6 +84,8 @@ const login = async(req, res) => {
     }
 };
 
+
+// TODO: Add send Mail 
 const forgotPassword = async(req, res) => {
     const user = await User.findOne({
         where: {
@@ -93,7 +94,9 @@ const forgotPassword = async(req, res) => {
     });
 
     if (user) res.status(httpStatus.OK).send(user);
-    else res.status(httpStatus.UNAUTHORIZED).send("Email Not Found");
+    else res.status(httpStatus.UNAUTHORIZED).send({
+        message: "Email Not Found"
+    });
 };
 
 const resetPassword = async(req, res) => {
@@ -114,7 +117,7 @@ const getUser = async(req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: "invalid token"
+                message: err.message
             });
         } else {
             const user = await User.findOne({
@@ -139,7 +142,7 @@ const getUsers = async(req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: "invalid token"
+                message: err.message
             });
         } else {
             const user = await User.findOne({
@@ -176,7 +179,7 @@ const upgradeLearner = async(req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: "invalid token"
+                message: err.message
             });
         } else {
             const admin = await User.findOne({
@@ -225,38 +228,43 @@ const upgradeLearner = async(req, res) => {
 
 
 };
-
-// TODO : To be tested
-const addCourse = async(req, res) => {
+// need course 
+const enrollMe = async(req, res) => {
 
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: "invalid token"
+                message: err.message
             });
         } else {
-            const admin = await User.findOne({
+            const user = await User.findOne({
                 where: {
                     username: authData.username
                 },
             });
-            if (admin) {
-                if (admin.type == 'admin') {
-
-                    const userCourse = await UserCourses.create({
-                        userId: req.params._id,
-                        courseId: req.body.courseId,
-                    });
+            if (user) {
+                if (user.type == constants.userType.LEARNER || user.type == constants.userType.ADMIN) {
+                    try {
+                        userId = authData._id;
+                        const userCourse = await UserCourses.create({
+                            userId: req.params.id, //userId,
+                            courseId: req.body.courseId,
+                        });
+                    } catch (error) {
+                        res.status(httpStatus.ALREADY_REPORTED).send({
+                            message: "Already enrolled"
+                        });
+                    }
 
                     if (userCourse) res.status(httpStatus.OK).send(userCourse);
                     else
                         res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
-                            message: "Didn't added, please try again"
+                            message: "failed to add, please try again"
                         });
 
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message: "you must be an admin to make this operation "
+                        message: "you must be an admin or learner to make this operation"
                     });
                 }
 
@@ -275,7 +283,7 @@ const deleteUser = async(req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: "invalid token"
+                message: err.message
             });
         } else {
             const user = await User.findOne({
@@ -330,6 +338,6 @@ module.exports = {
     getUser,
     getUsers,
     upgradeLearner,
-    addCourse,
+    enrollMe,
     deleteUser,
 };
