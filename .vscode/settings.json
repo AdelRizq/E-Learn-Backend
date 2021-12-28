@@ -4,7 +4,9 @@
         "Express",
         "Models",
         "Controllers",
-        "User"
+        "User",
+        "merge ",
+        "auth"
     ],
     "cSpell.ignoreWords": ["dateonly"]
 }
