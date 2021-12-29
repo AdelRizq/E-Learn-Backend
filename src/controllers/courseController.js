@@ -20,7 +20,6 @@ const addCourse = async(req, res) => {
 
     jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
-
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message
             });
@@ -34,14 +33,21 @@ const addCourse = async(req, res) => {
             if (user) {
                 if (user.type == 'admin' || user.type == 'instructor') {
                     // Do Your function 
+
                     const info = {
                         name: req.body.name,
                         syllabus: req.body.syllabus,
                         instructorId: user._id, // TODO: from body or get it from session (instructor will create the course himself)
                     };
-
-                    const course = await Course.create(info);
-                    res.status(httpStatus.OK).send(course);
+                    try {
+                        const course = await Course.create(info);
+                        res.status(httpStatus.OK).send(course);
+                    } catch (error) {
+                        console.log(error.sqlMessage);
+                        res.status(httpStatus.FORBIDDEN).send({
+                            message: "Duplicate course name"
+                        });
+                    }
 
 
                 } else {

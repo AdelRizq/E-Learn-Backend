@@ -9,14 +9,14 @@ router
 router
     .route("/me")
     .get(auth.verifyToken, userController.getUser)
-
+    
 router
     .route("/:username")
     .put(auth.verifyToken, userController.upgradeLearner)
     .delete(auth.verifyToken, userController.deleteUser);
 
 router
-    .route("/:id/enrollMe")
+    .route("/enrollMe")
     .post(auth.verifyToken, userController.enrollMe);
 
 module.exports = router;

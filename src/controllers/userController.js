@@ -31,13 +31,22 @@ const signup = async(req, res) => {
     };
 
     try {
-        const user = await User.create(info);
-
+        let user = await User.create(info);
+        const userData = {
+            username: user.username,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            birthDate: user.birthDate,
+            coursesIds: user.coursesIds || [],
+            type: user.type,
+        }
         info._id = user._id;
         res.status(httpStatus.CREATED).send({
             token: jwt.sign(info, config.SECRET_KEY, {
                 expiresIn: config.JWT_EXPIRES_IN
             }),
+            userData: userData
         });
     } catch (error) {
         res.status(httpStatus.BAD_REQUEST).send({
@@ -169,9 +178,6 @@ const getUsers = async(req, res) => {
             }
         }
     });
-
-
-
 };
 
 const upgradeLearner = async(req, res) => {
@@ -225,8 +231,6 @@ const upgradeLearner = async(req, res) => {
             }
         }
     });
-
-
 };
 // need course 
 const enrollMe = async(req, res) => {
@@ -245,9 +249,9 @@ const enrollMe = async(req, res) => {
             if (user) {
                 if (user.type == constants.userType.LEARNER || user.type == constants.userType.ADMIN) {
                     try {
-                        userId = authData._id;
+
                         const userCourse = await UserCourses.create({
-                            userId: req.params.id, //userId,
+                            userId: authData._id, //userId,
                             courseId: req.body.courseId,
                         });
                     } catch (error) {
