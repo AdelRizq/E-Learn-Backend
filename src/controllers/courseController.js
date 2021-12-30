@@ -165,15 +165,20 @@ const deleteCourse = async(req, res) => {
             if (user && course) {
                 if (user.type == 'admin' || user._id == course.instructorId) {
                     // Do Your function 
-
-                    await Course.destroy({
-                        where: {
-                            _id: req.params.id
-                        }
-                    });
-                    res.status(httpStatus.OK).send({
-                        message: "Course Deleted Successfully"
-                    });
+                    try {
+                        await Course.destroy({
+                            where: {
+                                _id: req.params.id
+                            }
+                        });
+                        res.status(httpStatus.OK).send({
+                            message: "Course Deleted Successfully"
+                        });
+                    } catch (error) {
+                        res.status(httpStatus.FORBIDDEN).send({
+                            message: "error during deletion"
+                        });
+                    }
 
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
