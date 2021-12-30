@@ -1,8 +1,5 @@
 const dbConfig = require("../config/db.config");
-const {
-    Sequelize,
-    DataTypes
-} = require("sequelize");
+const { Sequelize, DataTypes } = require("sequelize");
 
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
@@ -33,6 +30,8 @@ db.users = require("./userModel")(sequelize, DataTypes);
 db.courses = require("./courseModel")(sequelize, DataTypes);
 db.activities = require("./activityModel")(sequelize, DataTypes);
 
+db.answers = require("./answerModel")(sequelize, DataTypes);
+db.questions = require("./questionModel")(sequelize, DataTypes);
 db.userCourses = require("./userCoursesModel")(sequelize, DataTypes);
 
 db.users.belongsToMany(db.courses, {
@@ -58,6 +57,18 @@ db.courses.hasMany(db.activities, {
 });
 db.activities.belongsTo(db.courses, {
     foreignKey: "courseId",
+});
+
+db.courses.hasMany(db.questions, {
+    foreignKey: "courseId",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+});
+
+db.questions.hasMany(db.answers, {
+    foreignKey: "questionId",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
 });
 
 db.sequelize
