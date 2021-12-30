@@ -12,7 +12,10 @@ const {
 
 const User = db.users;
 const UserCourses = db.userCourses;
-const constants = require('../config/constants.config')
+const constants = require('../config/constants.config');
+const {
+    where
+} = require("sequelize/dist");
 
 // 1. Authentication
 
@@ -33,6 +36,7 @@ const signup = async(req, res) => {
     try {
         let user = await User.create(info);
         const userData = {
+            _id: user._id,
             username: user.username,
             email: user.email,
             firstName: user.firstName,
@@ -43,7 +47,7 @@ const signup = async(req, res) => {
         }
         info._id = user._id;
         res.status(httpStatus.CREATED).send({
-            token: jwt.sign(info, config.SECRET_KEY, {
+            token: jwt.sign(userData, config.SECRET_KEY, {
                 expiresIn: config.JWT_EXPIRES_IN
             }),
             userData: userData
@@ -67,24 +71,23 @@ const login = async(req, res) => {
     });
 
 
-    const info = {
+    const userData = {
         _id: user._id,
         username: user.username,
         email: user.email,
-        password: user.password,
         firstName: user.firstName,
         lastName: user.lastName,
         birthDate: user.birthDate,
         coursesIds: user.coursesIds || [],
         type: user.type,
     };
-    console.log(info);
 
     if (user) {
         res.status(httpStatus.OK).send({
-            token: jwt.sign(info, config.SECRET_KEY, {
+            token: jwt.sign(userData, config.SECRET_KEY, {
                 expiresIn: config.JWT_EXPIRES_IN
             }),
+            userData: userData
         });
     } else {
         res.status(httpStatus.UNAUTHORIZED).send({
@@ -232,6 +235,79 @@ const upgradeLearner = async(req, res) => {
         }
     });
 };
+
+const updateUser = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+        if (err) {
+            res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message
+            });
+        } else {
+            const user = await User.findOne({
+                where: {
+                    username: authData.username
+                },
+            });
+            console.log("userID", user._id);
+            if (user) {
+                const updatedData = {
+                    username: req.body.username,
+                    email: req.body.email,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    birthDate: req.body.birthDate,
+                };
+                try {
+
+                    await User.update(updatedData, {
+                        where: {
+                            _id: user._id
+                        }
+                    });
+                    const updatedUser = await User.findOne({
+                        where: {
+                            _id: user._id
+                        },
+                    });
+
+                    console.log("ok", updatedUser);
+                    const userData = {
+                        _id: updatedUser._id,
+                        username: updatedUser.username,
+                        email: updatedUser.email,
+                        firstName: updatedUser.firstName,
+                        lastName: updatedUser.lastName,
+                        birthDate: updatedUser.birthDate,
+                        coursesIds: updatedUser.coursesIds || [],
+                        type: updatedUser.type,
+                    };
+
+
+                    res.status(httpStatus.OK).send({
+                        message: "updated successfully",
+                        userData: userData,
+                        token: jwt.sign(userData, config.SECRET_KEY, {
+                            expiresIn: config.JWT_EXPIRES_IN
+                        }),
+
+                    });
+                } catch (error) {
+                    console.log(error);
+                    res.status(httpStatus.BAD_REQUEST).send({
+                        message: "invalid info provided"
+                    });
+                }
+
+
+            } else {
+                res.status(httpStatus.NOT_FOUND).send({
+                    message: "user Not Found"
+                });
+            }
+        }
+    });
+};
+
 // need course 
 const enrollMe = async(req, res) => {
 
@@ -337,6 +413,7 @@ const deleteUser = async(req, res) => {
 module.exports = {
     signup,
     login,
+    updateUser,
     forgotPassword,
     resetPassword,
     getUser,

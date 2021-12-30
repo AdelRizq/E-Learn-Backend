@@ -9,7 +9,8 @@ router
 router
     .route("/me")
     .get(auth.verifyToken, userController.getUser)
-    
+    .put(auth.verifyToken, userController.updateUser)
+
 router
     .route("/:username")
     .put(auth.verifyToken, userController.upgradeLearner)
