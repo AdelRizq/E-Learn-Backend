@@ -14,4 +14,14 @@ router
     .get(auth.verifyToken, courseController.getCourses)
     .post(auth.verifyToken, courseController.addCourse);
 
+router
+    .route("/:id/question")
+    .get(auth.verifyToken, courseController.getQuestions)
+    .post(auth.verifyToken, courseController.addQuestion);
+
+router
+    .route("/:id/answer")
+    .get(auth.verifyToken, courseController.getAnswers)
+    .post(auth.verifyToken, courseController.addAnswer);
+
 module.exports = router;

@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
             },
         },
         courseId: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             references: {
                 model: course,
                 key: "_id",
