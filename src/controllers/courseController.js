@@ -202,8 +202,22 @@ const getCourses = async (req, res) => {
             });
         }
 
+        let myCoursesIds = await UserCourse.findAll({
+            where: { userId: authData._id },
+            attributes: ["courseId"],
+        });
+        myCoursesIds = myCoursesIds.map(
+            (userCourse) => userCourse.dataValues.courseId
+        );
+
         let courses = await Course.findAll({
-            attributes: ["name", "syllabus", "instructorId", "createdAt"],
+            attributes: [
+                "_id",
+                "name",
+                "syllabus",
+                "instructorId",
+                "createdAt",
+            ],
         });
 
         if (!courses) {
@@ -212,12 +226,17 @@ const getCourses = async (req, res) => {
             });
         }
 
+        console.log(myCoursesIds);
         courses = courses.map((course) => {
             course.dataValues.date = new Date(course.dataValues.createdAt)
                 .toISOString()
                 .split("T")[0];
-            delete course.dataValues.createdAt;
 
+            course.dataValues.isEnrolled = myCoursesIds.includes(
+                course.dataValues._id
+            );
+
+            delete course.dataValues.createdAt;
             return course;
         });
 
