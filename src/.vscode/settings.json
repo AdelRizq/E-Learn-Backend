@@ -1,0 +1,5 @@
+{
+    "conventionalCommits.scopes": [
+        "validate try catch for all database qureies"
+    ]
+}
