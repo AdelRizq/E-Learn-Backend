@@ -227,7 +227,7 @@ const getCourses = async (req, res) => {
         }
 
         console.log(myCoursesIds);
-        courses = courses.map((course) => {
+        for (let course of courses) {
             course.dataValues.date = new Date(course.dataValues.createdAt)
                 .toISOString()
                 .split("T")[0];
@@ -236,9 +236,16 @@ const getCourses = async (req, res) => {
                 course.dataValues._id
             );
 
+            course.dataValues.instructorName = (
+                await User.findOne({
+                    where: { _id: course.dataValues.instructorId },
+                    attributes: ["username"],
+                })
+            ).dataValues.username;
+
             delete course.dataValues.createdAt;
-            return course;
-        });
+            delete course.dataValues.instructorId;
+        }
 
         return res.status(httpStatus.OK).send(courses);
     });
@@ -393,6 +400,17 @@ const enrollLearner = async (req, res) => {
             if (!learner) {
                 return res.status(httpStatus.NOT_FOUND).send({
                     message: "User Not Found",
+                });
+            }
+
+            const course = await Course.findOne({
+                where: { _id: req.params.id },
+                attributes: ["_id"],
+            });
+
+            if (!course) {
+                return res.status(httpStatus.NOT_FOUND).send({
+                    message: "Course Not Found",
                 });
             }
 
