@@ -58,18 +58,18 @@ const login = async (req, res) => {
         },
     });
 
-    const userData = {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        birthDate: user.birthDate,
-        coursesIds: user.coursesIds || [],
-        type: user.type,
-    };
-
     if (user) {
+        const userData = {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            birthDate: user.birthDate,
+            coursesIds: user.coursesIds || [],
+            type: user.type,
+        };
+
         res.status(httpStatus.OK).send({
             token: jwt.sign(userData, config.SECRET_KEY, {
                 expiresIn: config.JWT_EXPIRES_IN,

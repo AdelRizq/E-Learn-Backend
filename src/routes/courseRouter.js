@@ -15,12 +15,12 @@ router
     .post(auth.verifyToken, courseController.addCourse);
 
 router
-    .route("/:id/question")
+    .route("/:id/questions")
     .get(auth.verifyToken, courseController.getQuestions)
     .post(auth.verifyToken, courseController.addQuestion);
 
 router
-    .route("/:id/answer")
+    .route("/:id/answers")
     .get(auth.verifyToken, courseController.getAnswers)
     .post(auth.verifyToken, courseController.addAnswer);
 

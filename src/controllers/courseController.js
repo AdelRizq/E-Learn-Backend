@@ -1,9 +1,7 @@
 const httpStatus = require("http-status");
 const jwt = require("jsonwebtoken");
 const config = require("./../config/jwt.config");
-const {
-    userCourses
-} = require("../models");
+const { userCourses } = require("../models");
 const db = require("../models");
 
 const Course = db.courses;
@@ -13,8 +11,8 @@ const Answer = db.answers;
 
 // 1. Add Course
 // instructor or admin accounts
-const addCourse = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const addCourse = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -46,7 +44,8 @@ const addCourse = async(req, res) => {
                     }
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message: "you must be an admin or instructor to do this operation ",
+                        message:
+                            "you must be an admin or instructor to do this operation ",
                     });
                 }
             } else {
@@ -58,8 +57,8 @@ const addCourse = async(req, res) => {
     });
 };
 
-const addQuestion = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const addQuestion = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -109,8 +108,8 @@ const addQuestion = async(req, res) => {
     });
 };
 
-const addAnswer = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const addAnswer = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -162,8 +161,8 @@ const addAnswer = async(req, res) => {
 
 // 2. Get Courses
 // any authorized user
-const getCourse = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const getCourse = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -187,8 +186,8 @@ const getCourse = async(req, res) => {
 };
 
 // any authorized user
-const getCourses = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const getCourses = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -213,24 +212,34 @@ const getCourses = async(req, res) => {
 };
 
 // any authorized user
-const getQuestions = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const getQuestions = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
-            const questions = await Question.findAll({
+            let questions = await Question.findAll({
                 where: {
-                    courseId: req.params.id
-                }
-            }, {
-                attributes: ["username", "body", "date"],
+                    courseId: req.params.id,
+                },
+                attributes: ["_id", "username", "body", "date"],
             });
+
             if (questions) {
-                {
-                    res.status(httpStatus.OK).send(questions);
+                for (let question of questions) {
+                    const answers = await Answer.findAll({
+                        where: {
+                            questionId: question.dataValues._id,
+                        },
+                        attributes: ["username", "body", "date"],
+                    });
+
+                    question.dataValues.answers = answers;
+                    delete question.dataValues._id;
                 }
+
+                res.status(httpStatus.OK).send(questions);
             } else {
                 {
                     res.status(httpStatus.NO_CONTENT).send({
@@ -243,8 +252,8 @@ const getQuestions = async(req, res) => {
 };
 
 // any authorized user
-const getAnswers = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const getAnswers = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -252,9 +261,8 @@ const getAnswers = async(req, res) => {
         } else {
             const answers = await Answer.findAll({
                 where: {
-                    questionId: req.params.id
-                }
-            }, {
+                    questionId: req.params.id,
+                },
                 attributes: ["username", "body", "date"],
             });
             if (answers) {
@@ -272,7 +280,7 @@ const getAnswers = async(req, res) => {
     });
 };
 
-const enrollLearners = async(req, res) => {
+const enrollLearners = async (req, res) => {
     const learners = req.body.learners; // ! learners are array of ids [ids]
     let courseId = req.params.id;
 
@@ -290,8 +298,8 @@ const enrollLearners = async(req, res) => {
 };
 
 // 3. Delete Course
-const deleteCourse = async(req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
+const deleteCourse = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -309,26 +317,26 @@ const deleteCourse = async(req, res) => {
             });
 
             if (user && course) {
-                if (user.type == 'admin' || user._id == course.instructorId) {
-                    // Do Your function 
+                if (user.type == "admin" || user._id == course.instructorId) {
+                    // Do Your function
                     try {
                         await Course.destroy({
                             where: {
-                                _id: req.params.id
-                            }
+                                _id: req.params.id,
+                            },
                         });
                         res.status(httpStatus.OK).send({
-                            message: "Course Deleted Successfully"
+                            message: "Course Deleted Successfully",
                         });
                     } catch (error) {
                         res.status(httpStatus.FORBIDDEN).send({
-                            message: "error during deletion"
+                            message: "error during deletion",
                         });
                     }
-
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message: "you must be an admin  or instructor this course to do this operation ",
+                        message:
+                            "you must be an admin  or instructor this course to do this operation ",
                     });
                 }
             } else {
