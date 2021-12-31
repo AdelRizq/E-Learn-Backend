@@ -186,7 +186,7 @@ const getUser = async (req, res) => {
 
         const user = await User.findOne({
             where: {
-                username: authData.username,
+                _id: authData._id,
             },
         });
 
@@ -315,7 +315,7 @@ const updateUser = async (req, res) => {
         }
         const user = await User.findOne({
             where: {
-                username: authData.username,
+                _id: authData._id,
             },
         });
 
