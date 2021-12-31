@@ -54,11 +54,19 @@ const login = async (req, res) => {
     const user = await User.findOne({
         where: {
             email: req.body.email,
-            password: req.body.password,
         },
     });
 
     if (!user) {
+        return res.status(httpStatus.UNAUTHORIZED).send({
+            message: "error in auth information",
+        });
+    }
+
+    if (
+        !user.password ||
+        !(await user.validPassword(req.body.password, user.dataValues.password))
+    ) {
         return res.status(httpStatus.UNAUTHORIZED).send({
             message: "error in auth information",
         });
