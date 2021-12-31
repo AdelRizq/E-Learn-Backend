@@ -19,44 +19,42 @@ const addCourse = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const user = await User.findOne({
-                where: {
-                    username: authData.username,
-                },
+        }
+        const user = await User.findOne({
+            where: {
+                username: authData.username,
+            },
+        });
+
+        if (!user) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "user Not Found",
             });
+        }
 
-            if (user) {
-                if (
-                    user.type == constants.userType.ADMIN ||
-                    user.type == constants.userType.INSTRUCTOR
-                ) {
-                    // Do Your function
+        if (
+            user.type != constants.userType.ADMIN &&
+            user.type != constants.userType.INSTRUCTOR
+        ) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message:
+                    "you must be an admin or instructor to do this operation ",
+            });
+        }
 
-                    const info = {
-                        name: req.body.name,
-                        syllabus: req.body.syllabus,
-                        instructorId: authData._id,
-                    };
-                    try {
-                        const course = await Course.create(info);
-                        return res.status(httpStatus.OK).send(course);
-                    } catch (error) {
-                        return res.status(httpStatus.FORBIDDEN).send({
-                            message: "Duplicate course name",
-                        });
-                    }
-                } else {
-                    return res.status(httpStatus.UNAUTHORIZED).send({
-                        message:
-                            "you must be an admin or instructor to do this operation ",
-                    });
-                }
-            } else {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
-                });
-            }
+        const info = {
+            name: req.body.name,
+            syllabus: req.body.syllabus,
+            instructorId: authData._id,
+        };
+
+        try {
+            const course = await Course.create(info);
+            return res.status(httpStatus.OK).send(course);
+        } catch (error) {
+            return res.status(httpStatus.FORBIDDEN).send({
+                message: "Duplicate course name",
+            });
         }
     });
 };
@@ -67,46 +65,46 @@ const addQuestion = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const user = await User.findOne({
-                where: {
-                    username: authData.username,
-                },
-            });
+        }
 
-            if (user == null) {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
-                });
-            }
-
-            const course = await Course.findOne({
-                where: {
-                    _id: req.params.id,
-                },
-            });
-
-            if (course == null) {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "course Not Found",
-                });
-            }
-
-            const info = {
+        const user = await User.findOne({
+            where: {
                 username: authData.username,
-                courseId: req.params.id,
-                body: req.body.question,
-                date: req.body.date,
-            };
+            },
+        });
 
-            try {
-                const question = await Question.create(info);
-                return res.status(httpStatus.OK).send(question);
-            } catch (error) {
-                return res.status(httpStatus.FORBIDDEN).send({
-                    message: "invalid question, please try again",
-                });
-            }
+        if (user == null) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "user Not Found",
+            });
+        }
+
+        const course = await Course.findOne({
+            where: {
+                _id: req.params.id,
+            },
+        });
+
+        if (course == null) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "course Not Found",
+            });
+        }
+
+        const info = {
+            username: authData.username,
+            courseId: req.params.id,
+            body: req.body.question,
+            date: req.body.date,
+        };
+
+        try {
+            const question = await Question.create(info);
+            return res.status(httpStatus.OK).send(question);
+        } catch (error) {
+            return res.status(httpStatus.FORBIDDEN).send({
+                message: "invalid question, please try again",
+            });
         }
     });
 };
@@ -117,47 +115,47 @@ const addAnswer = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const user = await User.findOne({
-                where: {
-                    username: authData.username,
-                },
-            });
+        }
 
-            if (user == null) {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
-                });
-            }
-
-            const question = await Question.findOne({
-                where: {
-                    _id: req.params.id,
-                },
-            });
-
-            if (question == null) {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "question Not Found",
-                });
-            }
-
-            const info = {
+        const user = await User.findOne({
+            where: {
                 username: authData.username,
-                questionId: req.params.id,
-                body: req.body.answer,
-                date: req.body.date,
-            };
+            },
+        });
 
-            try {
-                const answer = await Answer.create(info);
-                return res.status(httpStatus.OK).send(answer);
-            } catch (error) {
-                console.log(error);
-                return res.status(httpStatus.FORBIDDEN).send({
-                    message: "invalid answer, please try again",
-                });
-            }
+        if (user == null) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "user Not Found",
+            });
+        }
+
+        const question = await Question.findOne({
+            where: {
+                _id: req.params.id,
+            },
+        });
+
+        if (question == null) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "question Not Found",
+            });
+        }
+
+        const info = {
+            username: authData.username,
+            questionId: req.params.id,
+            body: req.body.answer,
+            date: req.body.date,
+        };
+
+        try {
+            const answer = await Answer.create(info);
+            return res.status(httpStatus.OK).send(answer);
+        } catch (error) {
+            console.log(error);
+            return res.status(httpStatus.FORBIDDEN).send({
+                message: "invalid answer, please try again",
+            });
         }
     });
 };
@@ -170,21 +168,20 @@ const getCourse = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const course = await Course.findOne({
-                where: {
-                    _id: req.params.id,
-                },
-            });
-
-            if (course) {
-                return res.status(httpStatus.OK).send(course);
-            } else {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "Course Not Found",
-                });
-            }
         }
+        const course = await Course.findOne({
+            where: {
+                _id: req.params.id,
+            },
+        });
+
+        if (!course) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "Course Not Found",
+            });
+        }
+
+        return res.status(httpStatus.OK).send(course);
     });
 };
 
@@ -195,22 +192,19 @@ const getCourses = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const courses = await Course.findAll({
-                attributes: ["name", "syllabus", "instructorId"],
-            });
-            if (courses) {
-                {
-                    return res.status(httpStatus.OK).send(courses);
-                }
-            } else {
-                {
-                    return res.status(httpStatus.NO_CONTENT).send({
-                        message: "No Courses Found",
-                    });
-                }
-            }
         }
+
+        const courses = await Course.findAll({
+            attributes: ["name", "syllabus", "instructorId"],
+        });
+
+        if (!courses) {
+            return res.status(httpStatus.NO_CONTENT).send({
+                message: "No Courses Found",
+            });
+        }
+
+        return res.status(httpStatus.OK).send(courses);
     });
 };
 
@@ -221,36 +215,33 @@ const getQuestions = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            let questions = await Question.findAll({
+        }
+        let questions = await Question.findAll({
+            where: {
+                courseId: req.params.id,
+            },
+            attributes: ["_id", "username", "body", "date"],
+        });
+
+        if (!questions) {
+            return res.status(httpStatus.NO_CONTENT).send({
+                message: "No Questions Found",
+            });
+        }
+
+        for (let question of questions) {
+            const answers = await Answer.findAll({
                 where: {
-                    courseId: req.params.id,
+                    questionId: question.dataValues._id,
                 },
-                attributes: ["_id", "username", "body", "date"],
+                attributes: ["username", "body", "date"],
             });
 
-            if (questions) {
-                for (let question of questions) {
-                    const answers = await Answer.findAll({
-                        where: {
-                            questionId: question.dataValues._id,
-                        },
-                        attributes: ["username", "body", "date"],
-                    });
-
-                    question.dataValues.answers = answers;
-                    delete question.dataValues._id;
-                }
-
-                return res.status(httpStatus.OK).send(questions);
-            } else {
-                {
-                    return res.status(httpStatus.NO_CONTENT).send({
-                        message: "No Questions Found",
-                    });
-                }
-            }
+            question.dataValues.answers = answers;
+            delete question.dataValues._id;
         }
+
+        return res.status(httpStatus.OK).send(questions);
     });
 };
 
@@ -261,25 +252,22 @@ const getAnswers = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const answers = await Answer.findAll({
-                where: {
-                    questionId: req.params.id,
-                },
-                attributes: ["username", "body", "date"],
-            });
-            if (answers) {
-                {
-                    return res.status(httpStatus.OK).send(answers);
-                }
-            } else {
-                {
-                    return res.status(httpStatus.NO_CONTENT).send({
-                        message: "No Answers Found",
-                    });
-                }
-            }
         }
+
+        const answers = await Answer.findAll({
+            where: {
+                questionId: req.params.id,
+            },
+            attributes: ["username", "body", "date"],
+        });
+
+        if (!answers) {
+            return res.status(httpStatus.NO_CONTENT).send({
+                message: "No Answers Found",
+            });
+        }
+
+        return res.status(httpStatus.OK).send(answers);
     });
 };
 
@@ -351,49 +339,49 @@ const deleteCourse = async (req, res) => {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
-        } else {
-            const user = await User.findOne({
-                where: {
-                    username: authData.username,
-                },
+        }
+        const user = await User.findOne({
+            where: {
+                username: authData.username,
+            },
+        });
+
+        const course = await Course.findOne({
+            where: {
+                _id: req.params.id,
+            },
+        });
+
+        if (!user || !course) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message:
+                    "you must be an admin  or instructor this course to do this operation ",
             });
-            const course = await Course.findOne({
+        }
+
+        if (
+            user.type != constants.userType.ADMIN &&
+            user._id != course.instructorId
+        ) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "course Not Found",
+            });
+        }
+
+        try {
+            await Course.destroy({
                 where: {
                     _id: req.params.id,
                 },
             });
 
-            if (user && course) {
-                if (
-                    user.type == constants.userType.ADMIN ||
-                    user._id == course.instructorId
-                ) {
-                    // Do Your function
-                    try {
-                        await Course.destroy({
-                            where: {
-                                _id: req.params.id,
-                            },
-                        });
-                        return res.status(httpStatus.OK).send({
-                            message: "Course Deleted Successfully",
-                        });
-                    } catch (error) {
-                        return res.status(httpStatus.FORBIDDEN).send({
-                            message: "error during deletion",
-                        });
-                    }
-                } else {
-                    return res.status(httpStatus.UNAUTHORIZED).send({
-                        message:
-                            "you must be an admin  or instructor this course to do this operation ",
-                    });
-                }
-            } else {
-                return res.status(httpStatus.NOT_FOUND).send({
-                    message: "course Not Found",
-                });
-            }
+            return res.status(httpStatus.OK).send({
+                message: "Course Deleted Successfully",
+            });
+        } catch (error) {
+            return res.status(httpStatus.FORBIDDEN).send({
+                message: "error during deletion",
+            });
         }
     });
 };
