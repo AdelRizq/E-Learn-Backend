@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 
 // ^ Errors
 app.use(function (err, req, res, next) {
-    res.status(422).send({
+    return res.status(422).send({
         error: err.message,
     });
 });

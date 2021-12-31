@@ -6,7 +6,7 @@ const router = require("express").Router();
 router
     .route("/:id")
     .get(auth.verifyToken, courseController.getCourse)
-    .put(auth.verifyToken, courseController.enrollLearners)
+    .post(auth.verifyToken, courseController.enrollLearner)
     .delete(auth.verifyToken, courseController.deleteCourse);
 
 router

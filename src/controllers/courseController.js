@@ -1,20 +1,22 @@
 const httpStatus = require("http-status");
 const jwt = require("jsonwebtoken");
 const config = require("./../config/jwt.config");
-const { userCourses } = require("../models");
+
 const db = require("../models");
+const constants = require("../config/constants.config");
 
 const Course = db.courses;
 const User = db.users;
 const Question = db.questions;
 const Answer = db.answers;
+const UserCourse = db.userCourses;
 
 // 1. Add Course
 // instructor or admin accounts
 const addCourse = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -23,33 +25,35 @@ const addCourse = async (req, res) => {
                     username: authData.username,
                 },
             });
-            console.log(user);
+
             if (user) {
-                if (user.type == "admin" || user.type == "instructor") {
+                if (
+                    user.type == constants.userType.ADMIN ||
+                    user.type == constants.userType.INSTRUCTOR
+                ) {
                     // Do Your function
 
                     const info = {
                         name: req.body.name,
                         syllabus: req.body.syllabus,
-                        instructorId: user._id, // TODO: from body or get it from session (instructor will create the course himself)
+                        instructorId: authData._id,
                     };
                     try {
                         const course = await Course.create(info);
-                        res.status(httpStatus.OK).send(course);
+                        return res.status(httpStatus.OK).send(course);
                     } catch (error) {
-                        console.log(error.sqlMessage);
-                        res.status(httpStatus.FORBIDDEN).send({
+                        return res.status(httpStatus.FORBIDDEN).send({
                             message: "Duplicate course name",
                         });
                     }
                 } else {
-                    res.status(httpStatus.UNAUTHORIZED).send({
+                    return res.status(httpStatus.UNAUTHORIZED).send({
                         message:
                             "you must be an admin or instructor to do this operation ",
                     });
                 }
             } else {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "user Not Found",
                 });
             }
@@ -60,7 +64,7 @@ const addCourse = async (req, res) => {
 const addQuestion = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -71,7 +75,7 @@ const addQuestion = async (req, res) => {
             });
 
             if (user == null) {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "user Not Found",
                 });
             }
@@ -83,7 +87,7 @@ const addQuestion = async (req, res) => {
             });
 
             if (course == null) {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "course Not Found",
                 });
             }
@@ -97,10 +101,9 @@ const addQuestion = async (req, res) => {
 
             try {
                 const question = await Question.create(info);
-                res.status(httpStatus.OK).send(question);
+                return res.status(httpStatus.OK).send(question);
             } catch (error) {
-                console.log(error.sqlMessage);
-                res.status(httpStatus.FORBIDDEN).send({
+                return res.status(httpStatus.FORBIDDEN).send({
                     message: "invalid question, please try again",
                 });
             }
@@ -111,7 +114,7 @@ const addQuestion = async (req, res) => {
 const addAnswer = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -122,7 +125,7 @@ const addAnswer = async (req, res) => {
             });
 
             if (user == null) {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "user Not Found",
                 });
             }
@@ -134,7 +137,7 @@ const addAnswer = async (req, res) => {
             });
 
             if (question == null) {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "question Not Found",
                 });
             }
@@ -148,10 +151,10 @@ const addAnswer = async (req, res) => {
 
             try {
                 const answer = await Answer.create(info);
-                res.status(httpStatus.OK).send(answer);
+                return res.status(httpStatus.OK).send(answer);
             } catch (error) {
                 console.log(error);
-                res.status(httpStatus.FORBIDDEN).send({
+                return res.status(httpStatus.FORBIDDEN).send({
                     message: "invalid answer, please try again",
                 });
             }
@@ -164,7 +167,7 @@ const addAnswer = async (req, res) => {
 const getCourse = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -175,9 +178,9 @@ const getCourse = async (req, res) => {
             });
 
             if (course) {
-                res.status(httpStatus.OK).send(course);
+                return res.status(httpStatus.OK).send(course);
             } else {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "Course Not Found",
                 });
             }
@@ -189,7 +192,7 @@ const getCourse = async (req, res) => {
 const getCourses = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -198,11 +201,11 @@ const getCourses = async (req, res) => {
             });
             if (courses) {
                 {
-                    res.status(httpStatus.OK).send(courses);
+                    return res.status(httpStatus.OK).send(courses);
                 }
             } else {
                 {
-                    res.status(httpStatus.NO_CONTENT).send({
+                    return res.status(httpStatus.NO_CONTENT).send({
                         message: "No Courses Found",
                     });
                 }
@@ -215,7 +218,7 @@ const getCourses = async (req, res) => {
 const getQuestions = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -239,10 +242,10 @@ const getQuestions = async (req, res) => {
                     delete question.dataValues._id;
                 }
 
-                res.status(httpStatus.OK).send(questions);
+                return res.status(httpStatus.OK).send(questions);
             } else {
                 {
-                    res.status(httpStatus.NO_CONTENT).send({
+                    return res.status(httpStatus.NO_CONTENT).send({
                         message: "No Questions Found",
                     });
                 }
@@ -255,7 +258,7 @@ const getQuestions = async (req, res) => {
 const getAnswers = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -267,11 +270,11 @@ const getAnswers = async (req, res) => {
             });
             if (answers) {
                 {
-                    res.status(httpStatus.OK).send(answers);
+                    return res.status(httpStatus.OK).send(answers);
                 }
             } else {
                 {
-                    res.status(httpStatus.NO_CONTENT).send({
+                    return res.status(httpStatus.NO_CONTENT).send({
                         message: "No Answers Found",
                     });
                 }
@@ -280,28 +283,72 @@ const getAnswers = async (req, res) => {
     });
 };
 
-const enrollLearners = async (req, res) => {
-    const learners = req.body.learners; // ! learners are array of ids [ids]
-    let courseId = req.params.id;
+const enrollLearner = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+        if (err) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message,
+            });
+        }
 
-    // TODO: need test
-    await userCourses.bulkCreate(
-        learners.map((learner) => {
-            return {
-                userId: learner,
-                courseId: courseId,
-            };
-        })
-    );
+        const user = await User.findOne({
+            where: {
+                _id: authData._id,
+            },
+        });
 
-    res.status(httpStatus.OK).send("learners enrolled successfully");
+        if (user == null) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "user Not Found",
+            });
+        }
+
+        if (
+            user.type != constants.userType.INSTRUCTOR &&
+            user.type != constants.userType.ADMIN
+        ) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message:
+                    "you must be an admin or learner to make this operation",
+            });
+        }
+
+        try {
+            const learner = await User.findOne({
+                where: { email: req.body.email },
+                attributes: ["_id"],
+            });
+
+            if (!learner) {
+                return res.status(httpStatus.NOT_FOUND).send({
+                    message: "User Not Found",
+                });
+            }
+
+            const userCourse = await UserCourse.create({
+                userId: learner._id,
+                courseId: req.params.id,
+            });
+
+            if (!userCourse)
+                return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+                    message: "failed to enroll, please try again",
+                });
+
+            return res.status(httpStatus.OK).send(userCourse);
+        } catch (error) {
+            return res.status(httpStatus.ALREADY_REPORTED).send({
+                message: "Already enrolled",
+            });
+        }
+    });
 };
 
 // 3. Delete Course
 const deleteCourse = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
-            res.status(httpStatus.UNAUTHORIZED).send({
+            return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         } else {
@@ -317,7 +364,10 @@ const deleteCourse = async (req, res) => {
             });
 
             if (user && course) {
-                if (user.type == "admin" || user._id == course.instructorId) {
+                if (
+                    user.type == constants.userType.ADMIN ||
+                    user._id == course.instructorId
+                ) {
                     // Do Your function
                     try {
                         await Course.destroy({
@@ -325,22 +375,22 @@ const deleteCourse = async (req, res) => {
                                 _id: req.params.id,
                             },
                         });
-                        res.status(httpStatus.OK).send({
+                        return res.status(httpStatus.OK).send({
                             message: "Course Deleted Successfully",
                         });
                     } catch (error) {
-                        res.status(httpStatus.FORBIDDEN).send({
+                        return res.status(httpStatus.FORBIDDEN).send({
                             message: "error during deletion",
                         });
                     }
                 } else {
-                    res.status(httpStatus.UNAUTHORIZED).send({
+                    return res.status(httpStatus.UNAUTHORIZED).send({
                         message:
                             "you must be an admin  or instructor this course to do this operation ",
                     });
                 }
             } else {
-                res.status(httpStatus.NOT_FOUND).send({
+                return res.status(httpStatus.NOT_FOUND).send({
                     message: "course Not Found",
                 });
             }
@@ -356,6 +406,6 @@ module.exports = {
     getQuestions,
     addAnswer,
     getAnswers,
-    enrollLearners,
+    enrollLearner,
     deleteCourse,
 };
