@@ -18,7 +18,6 @@ const signup = async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         birthDate: req.body.birthDate,
-        coursesIds: req.body.coursesIds || [],
         type: req.body.type,
     };
 
@@ -31,7 +30,6 @@ const signup = async (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             birthDate: user.birthDate,
-            coursesIds: user.coursesIds || [],
             type: user.type,
         };
 
@@ -79,7 +77,6 @@ const login = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         birthDate: user.birthDate,
-        coursesIds: user.coursesIds || [],
         type: user.type,
     };
 
@@ -188,6 +185,14 @@ const getUser = async (req, res) => {
             where: {
                 _id: authData._id,
             },
+            attributes: [
+                "username",
+                "email",
+                "firstName",
+                "lastName",
+                "type",
+                "birthDate",
+            ],
         });
 
         if (!user) {
@@ -292,6 +297,14 @@ const upgradeLearner = async (req, res) => {
                     where: {
                         username: req.params.username,
                     },
+                    attributes: [
+                        "username",
+                        "email",
+                        "firstName",
+                        "lastName",
+                        "type",
+                        "birthDate",
+                    ],
                 }
             );
 
@@ -346,13 +359,11 @@ const updateUser = async (req, res) => {
             });
 
             const userData = {
-                _id: updatedUser._id,
                 username: updatedUser.username,
                 email: updatedUser.email,
                 firstName: updatedUser.firstName,
                 lastName: updatedUser.lastName,
                 birthDate: updatedUser.birthDate,
-                coursesIds: updatedUser.coursesIds || [],
                 type: updatedUser.type,
             };
 
