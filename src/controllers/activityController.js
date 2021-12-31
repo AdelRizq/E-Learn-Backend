@@ -1,11 +1,9 @@
 const httpStatus = require("http-status");
 const jwt = require("jsonwebtoken");
 const config = require("./../config/jwt.config")
-const uuid = require("uuid");
 const db = require("../models");
 
 const Activity = db.activities;
-const Course = db.courses;
 const User = db.users;
 
 // 1. Add Activity

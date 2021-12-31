@@ -1,25 +1,14 @@
-const uuid = require("uuid");
 const jwt = require("jsonwebtoken");
 const config = require("./../config/jwt.config")
-const {
-    courses
-} = require("../models");
 const httpStatus = require("http-status");
 const db = require("../models");
-const {
-    use
-} = require("../routes");
 
 const User = db.users;
 const UserCourses = db.userCourses;
 const constants = require('../config/constants.config');
-const {
-    where
-} = require("sequelize/dist");
 const nodemailer = require('nodemailer');
+
 // 1. Authentication
-
-
 const signup = async(req, res) => {
     const info = {
         // _id: uuid.v4(),
