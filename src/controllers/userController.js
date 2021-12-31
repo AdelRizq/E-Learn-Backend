@@ -10,7 +10,7 @@ const User = db.users;
 const UserCourse = db.userCourses;
 
 // 1. Authentication
-const signup = async (req, res) => {
+const signup = async(req, res) => {
     const info = {
         username: req.body.username,
         email: req.body.email,
@@ -44,13 +44,12 @@ const signup = async (req, res) => {
         });
     } catch (error) {
         return res.status(httpStatus.BAD_REQUEST).send({
-            message:
-                "The server could not understand the request due to invalid syntax.",
+            message: "The server could not understand the request due to invalid syntax.",
         });
     }
 };
 
-const login = async (req, res) => {
+const login = async(req, res) => {
     const user = await User.findOne({
         where: {
             email: req.body.email,
@@ -91,18 +90,20 @@ const login = async (req, res) => {
     });
 };
 
-const forgotPassword = async (req, res) => {
-    const user = await User.findOne({
-        where: {
-            email: req.body.email,
-        },
-    });
+const forgotPassword = async(req, res) => {
 
     const userData = {
         email: req.body.email,
     };
+
     const token = jwt.sign(userData, config.SECRET_KEY_RESET_PASSWORD, {
         expiresIn: config.JWT_EXPIRES_IN,
+    });
+
+    const user = await User.findOne({
+        where: {
+            email: req.body.email,
+        },
     });
 
     if (!user) {
@@ -127,7 +128,7 @@ const forgotPassword = async (req, res) => {
                 <p>${constants.env.CLIENT_URL}/reset/${token}<p/>`,
     };
 
-    transporter.sendMail(mailOptions, function (error, info) {
+    transporter.sendMail(mailOptions, function(error, info) {
         if (error) {
             return res.status(httpStatus.OK).send({
                 message: "invalid email sent",
@@ -140,23 +141,20 @@ const forgotPassword = async (req, res) => {
     });
 };
 
-const resetPassword = async (req, res) => {
+const resetPassword = async(req, res) => {
     try {
         const email = jwt.verify(
             req.body.token,
             config.SECRET_KEY_RESET_PASSWORD
         ).email;
 
-        const user = await User.update(
-            {
-                password: req.body.password,
+        const user = await User.update({
+            password: req.body.password,
+        }, {
+            where: {
+                email: email,
             },
-            {
-                where: {
-                    email: email,
-                },
-            }
-        );
+        });
 
         if (!user) {
             return res.status(httpStatus.FORBIDDEN).send({
@@ -175,8 +173,8 @@ const resetPassword = async (req, res) => {
 };
 
 // 2. Get current user
-const getUser = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getUser = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -200,8 +198,8 @@ const getUser = async (req, res) => {
 };
 
 // 3. Get Users for manage users page
-const getUsers = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getUsers = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -225,17 +223,23 @@ const getUsers = async (req, res) => {
                 message: "you must be an admin to make this operation ",
             });
         }
+        try {
 
-        const users = await User.findAll({
-            attributes: ["username", "type"],
-        });
+            const users = await User.findAll({
+                attributes: ["username", "type"],
+            });
 
-        return res.status(httpStatus.OK).send(users);
+            return res.status(httpStatus.OK).send(users);
+        } catch (error) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "error featching users"
+            });
+        }
     });
 };
 
-const upgradeLearner = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const upgradeLearner = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -266,31 +270,41 @@ const upgradeLearner = async (req, res) => {
             },
         });
 
-        if (user1.type != "learner") {
+        if (!user1) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                message: "user not found"
+            });
+        }
+
+        if (user1.type != constants.userType.LEARNER) {
             return res.status(httpStatus.FORBIDDEN).send({
                 message: "user is already instructor",
             });
         }
+        try {
 
-        const user = await User.update(
-            {
+            const user = await User.update({
                 type: constants.userType.INSTRUCTOR,
-            },
-            {
+            }, {
                 where: {
                     username: req.params.username,
                 },
-            }
-        );
+            });
 
-        return res.status(httpStatus.OK).send({
-            message: "updated successfully",
-        });
+            return res.status(httpStatus.OK).send({
+                message: "updated successfully",
+            });
+
+        } catch (error) {
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+                message: "error during updating database",
+            });
+        }
     });
 };
 
-const updateUser = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const updateUser = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -301,7 +315,7 @@ const updateUser = async (req, res) => {
                 username: authData.username,
             },
         });
-        if (user) {
+        if (!user) {
             return res.status(httpStatus.NOT_FOUND).send({
                 message: "user Not Found",
             });
@@ -352,8 +366,8 @@ const updateUser = async (req, res) => {
     });
 };
 
-const enrollMe = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const enrollMe = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -376,8 +390,7 @@ const enrollMe = async (req, res) => {
             user.type != constants.userType.ADMIN
         ) {
             return res.status(httpStatus.UNAUTHORIZED).send({
-                message:
-                    "you must be an admin or learner to make this operation",
+                message: "you must be an admin or learner to make this operation",
             });
         }
         try {
@@ -401,8 +414,8 @@ const enrollMe = async (req, res) => {
 };
 
 // 4. Delete User
-const deleteUser = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const deleteUser = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -432,20 +445,25 @@ const deleteUser = async (req, res) => {
             },
         });
 
-        if (userToBeDeleted) {
+        if (!userToBeDeleted) {
             return res.status(httpStatus.NOT_FOUND).send({
                 message: "User Not Found",
             });
         }
-
-        await User.destroy({
-            where: {
-                username: req.params.username,
-            },
-        });
-        return res.status(httpStatus.OK).send({
-            message: "User Deleted Successfully",
-        });
+        try {
+            await User.destroy({
+                where: {
+                    username: req.params.username,
+                },
+            });
+            return res.status(httpStatus.OK).send({
+                message: "User Deleted Successfully",
+            });
+        } catch (error) {
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+                message: "failed to delete user",
+            });
+        }
     });
 };
 
