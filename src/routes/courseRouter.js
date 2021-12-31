@@ -4,19 +4,25 @@ const auth = require("../auth/auth");
 const router = require("express").Router();
 
 router
+.route("/")
+.get(auth.verifyToken, courseController.getCourses)
+.post(auth.verifyToken, courseController.addCourse);
+
+router
     .route("/my-courses")
     .get(auth.verifyToken, courseController.getMyCourses);
+
+router
+.route("/top-courses")
+.get(auth.verifyToken, courseController.getTopCourses);
+
+
 
 router
     .route("/:id")
     .get(auth.verifyToken, courseController.getCourse)
     .post(auth.verifyToken, courseController.enrollLearner)
     .delete(auth.verifyToken, courseController.deleteCourse);
-
-router
-    .route("/")
-    .get(auth.verifyToken, courseController.getCourses)
-    .post(auth.verifyToken, courseController.addCourse);
 
 router
     .route("/:id/questions")

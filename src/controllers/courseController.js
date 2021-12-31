@@ -293,6 +293,52 @@ const getMyCourses = async (req, res) => {
 };
 
 // any authorized user
+const getTopCourses = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+        if (err) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message,
+            });
+        }
+
+        let courses = await Course.findAll({
+            attributes: [
+                "_id",
+                "name",
+                "syllabus",
+                "instructorId",
+                "createdAt",
+            ],
+            limit: 3,
+        });
+
+        if (!courses) {
+            return res.status(httpStatus.NO_CONTENT).send({
+                message: "No Courses Found",
+            });
+        }
+
+        for (let course of courses) {
+            course.dataValues.date = new Date(course.dataValues.createdAt)
+                .toISOString()
+                .split("T")[0];
+
+            course.dataValues.instructorName = (
+                await User.findOne({
+                    where: { _id: course.dataValues.instructorId },
+                    attributes: ["username"],
+                })
+            ).dataValues.username;
+
+            delete course.dataValues.createdAt;
+            delete course.dataValues.instructorId;
+        }
+
+        return res.status(httpStatus.OK).send(courses);
+    });
+};
+
+// any authorized user
 const getQuestions = async (req, res) => {
     jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
         if (err) {
@@ -492,6 +538,7 @@ module.exports = {
     getCourse,
     getCourses,
     getMyCourses,
+    getTopCourses,
     addQuestion,
     getQuestions,
     addAnswer,
