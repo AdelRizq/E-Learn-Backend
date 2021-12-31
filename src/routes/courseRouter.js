@@ -16,8 +16,6 @@ router
 .route("/top-courses")
 .get(auth.verifyToken, courseController.getTopCourses);
 
-
-
 router
     .route("/:id")
     .get(auth.verifyToken, courseController.getCourse)
