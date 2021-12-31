@@ -173,8 +173,10 @@ const getCourse = async (req, res) => {
             where: {
                 _id: req.params.id,
             },
-            attributes: ["name", "syllabus", "createdAt"],
+            attributes: ["name", "syllabus", "instructorId", "createdAt"],
         });
+
+        // course.dataValues.createdAt.substr(0, 10)
 
         if (!course) {
             return res.status(httpStatus.NOT_FOUND).send({
@@ -182,9 +184,10 @@ const getCourse = async (req, res) => {
             });
         }
 
-        console.log(course.createdAt);
-        course.date = String(course.createdAt).substr(0, 10);
-        delete course.createdAt;
+        course.dataValues.date = new Date(course.dataValues.createdAt)
+            .toISOString()
+            .split("T")[0];
+        delete course.dataValues.createdAt;
 
         return res.status(httpStatus.OK).send(course);
     });
@@ -199,8 +202,8 @@ const getCourses = async (req, res) => {
             });
         }
 
-        const courses = await Course.findAll({
-            attributes: ["name", "syllabus", "instructorId"],
+        let courses = await Course.findAll({
+            attributes: ["name", "syllabus", "instructorId", "createdAt"],
         });
 
         if (!courses) {
@@ -208,6 +211,15 @@ const getCourses = async (req, res) => {
                 message: "No Courses Found",
             });
         }
+
+        courses = courses.map((course) => {
+            course.dataValues.date = new Date(course.dataValues.createdAt)
+                .toISOString()
+                .split("T")[0];
+            delete course.dataValues.createdAt;
+
+            return course;
+        });
 
         return res.status(httpStatus.OK).send(courses);
     });
@@ -230,9 +242,9 @@ const getMyCourses = async (req, res) => {
             (userCourse) => userCourse.dataValues.courseId
         );
 
-        const courses = await Course.findAll({
+        let courses = await Course.findAll({
             where: { _id: myCoursesIds },
-            attributes: ["name", "syllabus", "instructorId"],
+            attributes: ["name", "syllabus", "instructorId", "createdAt"],
         });
 
         if (!courses) {
@@ -240,6 +252,15 @@ const getMyCourses = async (req, res) => {
                 message: "No Courses Found For You",
             });
         }
+
+        courses = courses.map((course) => {
+            course.dataValues.date = new Date(course.dataValues.createdAt)
+                .toISOString()
+                .split("T")[0];
+            delete course.dataValues.createdAt;
+
+            return course;
+        });
 
         return res.status(httpStatus.OK).send(courses);
     });
