@@ -4,6 +4,10 @@ const auth = require("../auth/auth");
 const router = require("express").Router();
 
 router
+    .route("/my-courses")
+    .get(auth.verifyToken, courseController.getMyCourses);
+
+router
     .route("/:id")
     .get(auth.verifyToken, courseController.getCourse)
     .post(auth.verifyToken, courseController.enrollLearner)

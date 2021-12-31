@@ -173,6 +173,7 @@ const getCourse = async (req, res) => {
             where: {
                 _id: req.params.id,
             },
+            attributes: ["name", "syllabus", "createdAt"],
         });
 
         if (!course) {
@@ -180,6 +181,10 @@ const getCourse = async (req, res) => {
                 message: "Course Not Found",
             });
         }
+
+        console.log(course.createdAt);
+        course.date = String(course.createdAt).substr(0, 10);
+        delete course.createdAt;
 
         return res.status(httpStatus.OK).send(course);
     });
@@ -201,6 +206,38 @@ const getCourses = async (req, res) => {
         if (!courses) {
             return res.status(httpStatus.NO_CONTENT).send({
                 message: "No Courses Found",
+            });
+        }
+
+        return res.status(httpStatus.OK).send(courses);
+    });
+};
+
+const getMyCourses = async (req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+        if (err) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message: err.message,
+            });
+        }
+
+        let myCoursesIds = await UserCourse.findAll({
+            where: { userId: authData._id },
+            attributes: ["courseId"],
+        });
+
+        myCoursesIds = myCoursesIds.map(
+            (userCourse) => userCourse.dataValues.courseId
+        );
+
+        const courses = await Course.findAll({
+            where: { _id: myCoursesIds },
+            attributes: ["name", "syllabus", "instructorId"],
+        });
+
+        if (!courses) {
+            return res.status(httpStatus.NO_CONTENT).send({
+                message: "No Courses Found For You",
             });
         }
 
@@ -302,6 +339,12 @@ const enrollLearner = async (req, res) => {
         }
 
         try {
+            if (!req.body.email) {
+                return res.status(httpStatus.NOT_FOUND).send({
+                    message: "Email should be sent at the request body",
+                });
+            }
+
             const learner = await User.findOne({
                 where: { email: req.body.email },
                 attributes: ["_id"],
@@ -390,6 +433,7 @@ module.exports = {
     addCourse,
     getCourse,
     getCourses,
+    getMyCourses,
     addQuestion,
     getQuestions,
     addAnswer,
