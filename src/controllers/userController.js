@@ -271,25 +271,26 @@ const upgradeLearner = async (req, res) => {
             });
         }
 
-        const user1 = await User.findOne({
+        const user = await User.findOne({
             where: {
                 username: req.params.username,
             },
         });
 
-        if (!user1) {
+        console.log(req.params.username);
+        if (!user) {
             return res.status(httpStatus.NOT_FOUND).send({
                 message: "user not found",
             });
         }
 
-        if (user1.type != constants.userType.LEARNER) {
+        if (user.type != constants.userType.LEARNER) {
             return res.status(httpStatus.FORBIDDEN).send({
                 message: "user is already instructor",
             });
         }
         try {
-            const user = await User.update(
+            await User.update(
                 {
                     type: constants.userType.INSTRUCTOR,
                 },

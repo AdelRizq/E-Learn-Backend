@@ -8,12 +8,12 @@ router.route("/").get(auth.verifyToken, userController.getUsers);
 router
     .route("/:id")
     .get(auth.verifyToken, userController.getUser)
-    .put(auth.verifyToken, userController.updateUser);
+    .put(auth.verifyToken, userController.updateUser)
+    .delete(auth.verifyToken, userController.deleteUser);
 
 router
-    .route("/:username")
-    .put(auth.verifyToken, userController.upgradeLearner)
-    .delete(auth.verifyToken, userController.deleteUser);
+    .route("/upgrade/:username")
+    .put(auth.verifyToken, userController.upgradeLearner);
 
 router.route("/enrollMe").post(auth.verifyToken, userController.enrollMe);
 
