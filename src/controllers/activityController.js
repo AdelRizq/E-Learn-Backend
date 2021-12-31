@@ -49,7 +49,7 @@ const addActivity = async (req, res) => {
             const activity = await Activity.create(info);
             return res.status(httpStatus.OK).send(activity);
         } catch (error) {
-            return res.status(httpStatus.OK).send({
+            return res.status(httpStatus.BAD_REQUEST).send({
                 message: "bad information provided",
             });
         }
@@ -145,8 +145,8 @@ const deleteActivity = async (req, res) => {
                 message: "Activity Deleted Successfully",
             });
         } catch (error) {
-            return res.status(httpStatus.FORBIDDEN).send({
-                message: "error during deletion",
+            return res.status(httpStatus.BAD_REQUEST).send({
+                message: "Error during deletion",
             });
         }
     });
