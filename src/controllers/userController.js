@@ -1,15 +1,26 @@
+const uuid = require("uuid");
 const jwt = require("jsonwebtoken");
-const config = require("./../config/jwt.config");
+const config = require("./../config/jwt.config")
+const {
+    courses
+} = require("../models");
 const httpStatus = require("http-status");
 const db = require("../models");
+const {
+    use
+} = require("../routes");
 
 const User = db.users;
 const UserCourses = db.userCourses;
-const constants = require("../config/constants.config");
-
+const constants = require('../config/constants.config');
+const {
+    where
+} = require("sequelize/dist");
+const nodemailer = require('nodemailer');
 // 1. Authentication
 
-const signup = async (req, res) => {
+
+const signup = async(req, res) => {
     const info = {
         // _id: uuid.v4(),
         username: req.body.username,
@@ -33,28 +44,29 @@ const signup = async (req, res) => {
             birthDate: user.birthDate,
             coursesIds: user.coursesIds || [],
             type: user.type,
-        };
+        }
         info._id = user._id;
         res.status(httpStatus.CREATED).send({
             token: jwt.sign(userData, config.SECRET_KEY, {
-                expiresIn: config.JWT_EXPIRES_IN,
+                expiresIn: config.JWT_EXPIRES_IN
             }),
-            userData: userData,
+            userData: userData
         });
     } catch (error) {
         res.status(httpStatus.BAD_REQUEST).send({
-            message:
-                "The server could not understand the request due to invalid syntax.",
+            message: "The server could not understand the request due to invalid syntax."
         });
         console.log(error);
+
     }
 };
 
-const login = async (req, res) => {
+const login = async(req, res) => {
+
     const user = await User.findOne({
         where: {
             email: req.body.email,
-            password: req.body.password,
+            password: req.body.password
         },
     });
 
@@ -72,167 +84,223 @@ const login = async (req, res) => {
 
         res.status(httpStatus.OK).send({
             token: jwt.sign(userData, config.SECRET_KEY, {
-                expiresIn: config.JWT_EXPIRES_IN,
+                expiresIn: config.JWT_EXPIRES_IN
             }),
-            userData: userData,
+            userData: userData
         });
     } else {
         res.status(httpStatus.UNAUTHORIZED).send({
-            message: "error in auth information",
+            message: "error in auth information"
         });
     }
 };
 
-// TODO: Add send Mail
-const forgotPassword = async (req, res) => {
+
+// TODO: Add send Mail 
+const forgotPassword = async(req, res) => {
+
     const user = await User.findOne({
         where: {
-            email: req.body.email,
-        },
+            email: req.body.email
+        }
     });
+    const userData = {
+        email: req.body.email
+    }
+    const token = jwt.sign(userData, config.SECRET_KEY_RESET_PASSWORD, {
+        expiresIn: config.JWT_EXPIRES_IN
+    })
 
-    if (user) res.status(httpStatus.OK).send(user);
-    else
-        res.status(httpStatus.UNAUTHORIZED).send({
-            message: "Email Not Found",
+    if (user) {
+        // password: 9_Dragon_Learners_9
+        // dragonlerarners@gmail.com
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'dragonlerarners@gmail.com',
+                pass: '9_Dragon_Learners_9'
+            }
         });
+
+        const mailOptions = {
+            from: '9_Dragon_Learners_9',
+            to: req.body.email,
+            subject: 'Reset Password',
+            html: `<h2>please click on the given link to reset your password<h2/>
+                  <p>${constants.env.CLIENT_URL}/reset/${token}<p/>`
+        };
+        transporter.sendMail(mailOptions, function(error, info) {
+            if (error) {
+                res.status(httpStatus.OK).send({
+                    message: "invalid email sent"
+                });
+
+            } else {
+                res.status(httpStatus.OK).send({
+                    message: "email sent"
+                });
+            }
+        });
+    } else res.status(httpStatus.UNAUTHORIZED).send({
+        message: "Email Not Found"
+    });
 };
 
-const resetPassword = async (req, res) => {
-    const user = await User.update(
-        {
-            password: req.body.password,
-        },
-        {
+const resetPassword = async(req, res) => {
+
+    try {
+        const email = jwt.verify(req.body.token, config.SECRET_KEY_RESET_PASSWORD).email;
+
+
+        const user = await User.update({
+            password: req.body.password
+        }, {
             where: {
                 // TODO: revise it, how FE will get hte email (we don't have session also)
-                email: req.body.email,
+                email: email,
             },
-        }
-    );
+        });
+        if (user) {
+            res.status(httpStatus.OK).send({
+                message: "password updated successfully"
+            });
+        } else {
+            res.status(httpStatus.FORBIDDEN).send({
+                message: "invalid email"
+            });
 
-    res.status(httpStatus.OK).send(user);
+        }
+
+    } catch (error) {
+        res.status(httpStatus.FORBIDDEN).send({
+            message: "invalid token sent"
+        });
+    }
+
 };
 
-// 2. Get current user
-const getUser = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+// 2. Get current user 
+const getUser = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: err.message,
+                message: err.message
             });
         } else {
             const user = await User.findOne({
                 where: {
-                    username: authData.username,
+                    username: authData.username
                 },
             });
             if (user) {
                 res.status(httpStatus.OK).send(user);
             } else {
                 res.status(httpStatus.NOT_FOUND).send({
-                    message: "Not Found",
+                    message: "Not Found"
                 });
             }
         }
     });
+
 };
 
 // 3. Get Users for manage users page
-const getUsers = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getUsers = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: err.message,
+                message: err.message
             });
         } else {
             const user = await User.findOne({
                 where: {
-                    username: authData.username,
+                    username: authData.username
                 },
             });
             if (user) {
-                if (user.type == "admin") {
+                if (user.type == 'admin') {
                     const users = await User.findAll({
                         attributes: ["username", "type"],
                     });
                     res.status(httpStatus.OK).send(users);
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message: "you must be an admin to make this operation ",
+                        message: "you must be an admin to make this operation "
                     });
                 }
+
             } else {
                 res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
+                    message: "user Not Found"
                 });
             }
         }
     });
 };
 
-const upgradeLearner = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const upgradeLearner = async(req, res) => {
+
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: err.message,
+                message: err.message
             });
         } else {
             const admin = await User.findOne({
                 where: {
-                    username: authData.username,
+                    username: authData.username
                 },
             });
             if (admin) {
-                if (admin.type == "admin") {
+                if (admin.type == 'admin') {
+
                     const user1 = await User.findOne({
                         where: {
-                            username: req.params.username,
+                            username: req.params.username
                         },
                     });
-                    if (user1.type == "learner") {
-                        const user = await User.update(
-                            {
-                                type: "instructor",
+                    if (user1.type == 'learner') {
+                        const user = await User.update({
+                            type: "instructor"
+                        }, {
+                            where: {
+                                username: req.params.username,
                             },
-                            {
-                                where: {
-                                    username: req.params.username,
-                                },
-                            }
-                        );
+                        });
                         res.status(httpStatus.OK).send({
-                            message: "updated successfully",
+                            message: "updated successfully"
                         });
                     } else {
                         res.status(httpStatus.FORBIDDEN).send({
-                            message: "user is already instructor",
+                            message: "user is already instructor"
                         });
                     }
+
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message: "you must be an admin to make this operation ",
+                        message: "you must be an admin to make this operation "
                     });
                 }
+
             } else {
                 res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
+                    message: "user Not Found"
                 });
             }
         }
     });
 };
 
-const updateUser = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const updateUser = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: err.message,
+                message: err.message
             });
         } else {
             const user = await User.findOne({
                 where: {
-                    username: authData.username,
+                    username: authData.username
                 },
             });
             console.log("userID", user._id);
@@ -245,14 +313,15 @@ const updateUser = async (req, res) => {
                     birthDate: req.body.birthDate,
                 };
                 try {
+
                     await User.update(updatedData, {
                         where: {
-                            _id: user._id,
-                        },
+                            _id: user._id
+                        }
                     });
                     const updatedUser = await User.findOne({
                         where: {
-                            _id: user._id,
+                            _id: user._id
                         },
                     });
 
@@ -268,71 +337,75 @@ const updateUser = async (req, res) => {
                         type: updatedUser.type,
                     };
 
+
                     res.status(httpStatus.OK).send({
                         message: "updated successfully",
                         userData: userData,
                         token: jwt.sign(userData, config.SECRET_KEY, {
-                            expiresIn: config.JWT_EXPIRES_IN,
+                            expiresIn: config.JWT_EXPIRES_IN
                         }),
+
                     });
                 } catch (error) {
                     console.log(error);
                     res.status(httpStatus.BAD_REQUEST).send({
-                        message: "invalid info provided",
+                        message: "invalid info provided"
                     });
                 }
+
+
             } else {
                 res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
+                    message: "user Not Found"
                 });
             }
         }
     });
 };
 
-// need course
-const enrollMe = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+// TODO :
+const enrollMe = async(req, res) => {
+
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: err.message,
+                message: err.message
             });
         } else {
             const user = await User.findOne({
                 where: {
-                    username: authData.username,
+                    username: authData.username
                 },
             });
             if (user) {
-                if (
-                    user.type == constants.userType.LEARNER ||
-                    user.type == constants.userType.ADMIN
-                ) {
+                if (user.type == constants.userType.LEARNER || user.type == constants.userType.ADMIN) {
                     try {
+
                         const userCourse = await UserCourses.create({
                             userId: authData._id, //userId,
                             courseId: req.body.courseId,
                         });
                     } catch (error) {
                         res.status(httpStatus.ALREADY_REPORTED).send({
-                            message: "Already enrolled",
+                            message: "Already enrolled"
                         });
                     }
 
                     if (userCourse) res.status(httpStatus.OK).send(userCourse);
                     else
                         res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
-                            message: "failed to add, please try again",
+                            message: "failed to add, please try again"
                         });
+
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message:
-                            "you must be an admin or learner to make this operation",
+                        message: "you must be an admin or learner to make this operation"
                     });
                 }
+
             } else {
                 res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
+                    message: "user Not Found"
                 });
             }
         }
@@ -340,53 +413,56 @@ const enrollMe = async (req, res) => {
 };
 
 // 4. Delete User
-const deleteUser = async (req, res) => {
+const deleteUser = async(req, res) => {
     // TODO: use the id from session instead of username
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             res.status(httpStatus.UNAUTHORIZED).send({
-                message: err.message,
+                message: err.message
             });
         } else {
             const user = await User.findOne({
                 where: {
-                    username: authData.username,
+                    username: authData.username
                 },
             });
 
             if (user) {
-                if (user.type == "admin") {
+                if (user.type == 'admin') {
                     const userToBeDeleted = await User.findOne({
                         where: {
-                            username: req.params.username,
+                            username: req.params.username
                         },
                     });
                     if (userToBeDeleted) {
                         await User.destroy({
                             where: {
-                                username: req.params.username,
-                            },
+                                username: req.params.username
+                            }
                         });
                         res.status(httpStatus.OK).send({
-                            message: "User Deleted Successfully",
+                            message: "User Deleted Successfully"
                         });
                     } else {
                         res.status(httpStatus.NOT_FOUND).send({
-                            message: "User Not Found",
+                            message: "User Not Found"
                         });
                     }
+
                 } else {
                     res.status(httpStatus.UNAUTHORIZED).send({
-                        message: "you must be an admin to make this operation ",
+                        message: "you must be an admin to make this operation "
                     });
                 }
+
             } else {
                 res.status(httpStatus.NOT_FOUND).send({
-                    message: "user Not Found",
+                    message: "user Not Found"
                 });
             }
         }
     });
+
 };
 
 module.exports = {
