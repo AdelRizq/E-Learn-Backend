@@ -60,10 +60,7 @@ const login = async(req, res) => {
         });
     }
 
-    if (!user.password
-        /*||
-               !(await user.validPassword(req.body.password, user.dataValues.password))*/
-    ) {
+    if (!user.password || !(await user.validPassword(req.body.password, user.dataValues.password))) {
         return res.status(httpStatus.UNAUTHORIZED).send({
             message: "Password is not correct, please try again",
         });
