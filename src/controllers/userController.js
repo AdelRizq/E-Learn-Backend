@@ -301,7 +301,11 @@ const upgradeLearner = async(req, res) => {
                     "birthDate",
                 ],
             });
-
+            await UserCourse.destroy({
+                where: {
+                    userId: user._id
+                }
+            });
             return res.status(httpStatus.OK).send({
                 message: "updated successfully",
             });
