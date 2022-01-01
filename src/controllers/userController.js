@@ -92,16 +92,22 @@ const forgotPassword = async(req, res) => {
     const token = jwt.sign(userData, config.SECRET_KEY_RESET_PASSWORD, {
         expiresIn: config.JWT_EXPIRES_IN,
     });
+    try {
 
-    const user = await User.findOne({
-        where: {
-            email: req.body.email,
-        },
-    });
+        const user = await User.findOne({
+            where: {
+                email: req.body.email,
+            },
+        });
 
-    if (!user) {
-        return res.status(httpStatus.UNAUTHORIZED).send({
-            message: "Email Not Found",
+        if (!user) {
+            return res.status(httpStatus.UNAUTHORIZED).send({
+                message: "Email Not Found",
+            });
+        }
+    } catch (error) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+            message: "Internal server error",
         });
     }
 
