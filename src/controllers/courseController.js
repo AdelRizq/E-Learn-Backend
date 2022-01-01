@@ -95,7 +95,6 @@ const addQuestion = async(req, res) => {
             courseId: req.params.id,
             body: req.body.question,
         };
-        console.log(info);
 
         try {
             const question = await Question.create(info);
@@ -144,7 +143,6 @@ const addAnswer = async(req, res) => {
             username: authData.username,
             questionId: req.params.id,
             body: req.body.answer,
-            date: req.body.date,
         };
 
         try {
@@ -403,21 +401,28 @@ const getAnswers = async(req, res) => {
                 message: err.message,
             });
         }
+        try {
 
-        const answers = await Answer.findAll({
-            where: {
-                questionId: req.params.id,
-            },
-            attributes: ["username", "body", "ceatedAt"],
-        });
+            const answers = await Answer.findAll({
+                where: {
+                    questionId: req.params.id,
+                },
+                attributes: ["username", "body", "createdAt"],
+            });
 
-        if (!answers) {
-            return res.status(httpStatus.NO_CONTENT).send({
-                message: "No Answers Found",
+            if (!answers) {
+                return res.status(httpStatus.NO_CONTENT).send({
+                    message: "No Answers Found",
+                });
+            }
+            return res.status(httpStatus.OK).send(answers);
+        } catch (error) {
+
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+                message: "error getting answers"
             });
         }
 
-        return res.status(httpStatus.OK).send(answers);
     });
 };
 
