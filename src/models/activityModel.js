@@ -19,5 +19,9 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             // allowNull: true // uncomment me in case of adding quizzes 👌
         },
+        courseId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
     });
 };
