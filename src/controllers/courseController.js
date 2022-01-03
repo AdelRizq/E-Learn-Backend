@@ -13,8 +13,8 @@ const UserCourse = db.userCourses;
 
 // 1. Add Course
 // instructor or admin accounts
-const addCourse = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const addCourse = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -37,8 +37,7 @@ const addCourse = async (req, res) => {
             user.type != constants.userType.INSTRUCTOR
         ) {
             return res.status(httpStatus.UNAUTHORIZED).send({
-                message:
-                    "you must be an admin or instructor to do this operation ",
+                message: "you must be an admin or instructor to do this operation ",
             });
         }
 
@@ -59,8 +58,8 @@ const addCourse = async (req, res) => {
     });
 };
 
-const addQuestion = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const addQuestion = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -95,7 +94,6 @@ const addQuestion = async (req, res) => {
             username: authData.username,
             courseId: req.params.id,
             body: req.body.question,
-            date: req.body.date,
         };
 
         try {
@@ -109,8 +107,8 @@ const addQuestion = async (req, res) => {
     });
 };
 
-const addAnswer = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const addAnswer = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -145,7 +143,6 @@ const addAnswer = async (req, res) => {
             username: authData.username,
             questionId: req.params.id,
             body: req.body.answer,
-            date: req.body.date,
         };
 
         try {
@@ -162,8 +159,8 @@ const addAnswer = async (req, res) => {
 
 // 2. Get Courses
 // any authorized user
-const getCourse = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getCourse = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -190,7 +187,9 @@ const getCourse = async (req, res) => {
 
         course.dataValues.instructorName = (
             await User.findOne({
-                where: { _id: course.dataValues.instructorId },
+                where: {
+                    _id: course.dataValues.instructorId
+                },
                 attributes: ["username"],
             })
         ).dataValues.username;
@@ -203,8 +202,8 @@ const getCourse = async (req, res) => {
 };
 
 // any authorized user
-const getCourses = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getCourses = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -212,7 +211,9 @@ const getCourses = async (req, res) => {
         }
 
         let myCoursesIds = await UserCourse.findAll({
-            where: { userId: authData._id },
+            where: {
+                userId: authData._id
+            },
             attributes: ["courseId"],
         });
         myCoursesIds = myCoursesIds.map(
@@ -247,7 +248,9 @@ const getCourses = async (req, res) => {
 
             course.dataValues.instructorName = (
                 await User.findOne({
-                    where: { _id: course.dataValues.instructorId },
+                    where: {
+                        _id: course.dataValues.instructorId
+                    },
                     attributes: ["username"],
                 })
             ).dataValues.username;
@@ -260,8 +263,8 @@ const getCourses = async (req, res) => {
     });
 };
 
-const getMyCourses = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getMyCourses = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -269,7 +272,9 @@ const getMyCourses = async (req, res) => {
         }
 
         let myCoursesIds = await UserCourse.findAll({
-            where: { userId: authData._id },
+            where: {
+                userId: authData._id
+            },
             attributes: ["courseId"],
         });
 
@@ -278,7 +283,9 @@ const getMyCourses = async (req, res) => {
         );
 
         let courses = await Course.findAll({
-            where: { _id: myCoursesIds },
+            where: {
+                _id: myCoursesIds
+            },
             attributes: ["name", "syllabus", "instructorId", "createdAt"],
         });
 
@@ -302,8 +309,8 @@ const getMyCourses = async (req, res) => {
 };
 
 // any authorized user
-const getTopCourses = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getTopCourses = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -334,7 +341,9 @@ const getTopCourses = async (req, res) => {
 
             course.dataValues.instructorName = (
                 await User.findOne({
-                    where: { _id: course.dataValues.instructorId },
+                    where: {
+                        _id: course.dataValues.instructorId
+                    },
                     attributes: ["username"],
                 })
             ).dataValues.username;
@@ -348,8 +357,8 @@ const getTopCourses = async (req, res) => {
 };
 
 // any authorized user
-const getQuestions = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getQuestions = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -359,7 +368,7 @@ const getQuestions = async (req, res) => {
             where: {
                 courseId: req.params.id,
             },
-            attributes: ["_id", "username", "body", "date"],
+            attributes: ["_id", "username", "body", "createdAt"],
         });
 
         if (!questions) {
@@ -373,7 +382,7 @@ const getQuestions = async (req, res) => {
                 where: {
                     questionId: question.dataValues._id,
                 },
-                attributes: ["username", "body", "date"],
+                attributes: ["username", "body", "createdAt"],
             });
 
             question.dataValues.answers = answers;
@@ -385,33 +394,40 @@ const getQuestions = async (req, res) => {
 };
 
 // any authorized user
-const getAnswers = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const getAnswers = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
             });
         }
+        try {
 
-        const answers = await Answer.findAll({
-            where: {
-                questionId: req.params.id,
-            },
-            attributes: ["username", "body", "date"],
-        });
+            const answers = await Answer.findAll({
+                where: {
+                    questionId: req.params.id,
+                },
+                attributes: ["username", "body", "createdAt"],
+            });
 
-        if (!answers) {
-            return res.status(httpStatus.NO_CONTENT).send({
-                message: "No Answers Found",
+            if (!answers) {
+                return res.status(httpStatus.NO_CONTENT).send({
+                    message: "No Answers Found",
+                });
+            }
+            return res.status(httpStatus.OK).send(answers);
+        } catch (error) {
+
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+                message: "error getting answers"
             });
         }
 
-        return res.status(httpStatus.OK).send(answers);
     });
 };
 
-const enrollLearner = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const enrollLearner = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -435,8 +451,7 @@ const enrollLearner = async (req, res) => {
             user.type != constants.userType.ADMIN
         ) {
             return res.status(httpStatus.UNAUTHORIZED).send({
-                message:
-                    "you must be an admin or learner to make this operation",
+                message: "you must be an admin or learner to make this operation",
             });
         }
 
@@ -448,7 +463,9 @@ const enrollLearner = async (req, res) => {
             }
 
             const learner = await User.findOne({
-                where: { email: req.body.email },
+                where: {
+                    email: req.body.email
+                },
                 attributes: ["_id"],
             });
 
@@ -459,7 +476,9 @@ const enrollLearner = async (req, res) => {
             }
 
             const course = await Course.findOne({
-                where: { _id: req.params.id },
+                where: {
+                    _id: req.params.id
+                },
                 attributes: ["_id"],
             });
 
@@ -489,8 +508,8 @@ const enrollLearner = async (req, res) => {
 };
 
 // 3. Delete Course
-const deleteCourse = async (req, res) => {
-    jwt.verify(req.token, config.SECRET_KEY, async (err, authData) => {
+const deleteCourse = async(req, res) => {
+    jwt.verify(req.token, config.SECRET_KEY, async(err, authData) => {
         if (err) {
             return res.status(httpStatus.UNAUTHORIZED).send({
                 message: err.message,
@@ -510,8 +529,7 @@ const deleteCourse = async (req, res) => {
 
         if (!user || !course) {
             return res.status(httpStatus.UNAUTHORIZED).send({
-                message:
-                    "you must be an admin  or instructor this course to do this operation ",
+                message: "you must be an admin  or instructor this course to do this operation ",
             });
         }
 
