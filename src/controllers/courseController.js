@@ -65,7 +65,8 @@ const addQuestion = async(req, res) => {
                 message: err.message,
             });
         }
-
+        
+        console.log(req)
         const user = await User.findOne({
             where: {
                 username: authData.username,
@@ -94,8 +95,10 @@ const addQuestion = async(req, res) => {
             username: authData.username,
             courseId: req.params.id,
             body: req.body.question,
+            date: req.body.date,
         };
 
+        console.log(info)
         try {
             const question = await Question.create(info);
             return res.status(httpStatus.OK).send(question);
@@ -143,13 +146,13 @@ const addAnswer = async(req, res) => {
             username: authData.username,
             questionId: req.params.id,
             body: req.body.answer,
+            date: req.body.date,
         };
 
         try {
             const answer = await Answer.create(info);
             return res.status(httpStatus.OK).send(answer);
         } catch (error) {
-            console.log(error);
             return res.status(httpStatus.FORBIDDEN).send({
                 message: "invalid answer, please try again",
             });
@@ -236,7 +239,6 @@ const getCourses = async(req, res) => {
             });
         }
 
-        console.log(myCoursesIds);
         for (let course of courses) {
             course.dataValues.date = new Date(course.dataValues.createdAt)
                 .toISOString()
@@ -286,7 +288,7 @@ const getMyCourses = async(req, res) => {
             where: {
                 _id: myCoursesIds
             },
-            attributes: ["name", "syllabus", "instructorId", "createdAt"],
+            attributes: ["_id", "name", "syllabus", "instructorId", "createdAt"],
         });
 
         if (!courses) {
@@ -295,14 +297,27 @@ const getMyCourses = async(req, res) => {
             });
         }
 
-        courses = courses.map((course) => {
+        for (let course of courses) {
             course.dataValues.date = new Date(course.dataValues.createdAt)
                 .toISOString()
                 .split("T")[0];
-            delete course.dataValues.createdAt;
 
-            return course;
-        });
+            course.dataValues.isEnrolled = myCoursesIds.includes(
+                course.dataValues._id
+            );
+
+            course.dataValues.instructorName = (
+                await User.findOne({
+                    where: {
+                        _id: course.dataValues.instructorId
+                    },
+                    attributes: ["username"],
+                })
+            ).dataValues.username;
+
+            delete course.dataValues.createdAt;
+            delete course.dataValues.instructorId;
+        }
 
         return res.status(httpStatus.OK).send(courses);
     });
@@ -385,8 +400,21 @@ const getQuestions = async(req, res) => {
                 attributes: ["username", "body", "createdAt"],
             });
 
+            question.dataValues.date = new Date(question.dataValues.createdAt)
+            .toISOString()
+            .split("T")[0];
+
+            for (let answer of answers) {
+                answer.date = new Date(answer.createdAt)
+                    .toISOString()
+                    .split("T")[0];
+    
+                delete answer.createdAt;
+            }
+
             question.dataValues.answers = answers;
-            delete question.dataValues._id;
+            
+            delete question.dataValues.createdAt;
         }
 
         return res.status(httpStatus.OK).send(questions);

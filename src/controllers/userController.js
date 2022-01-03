@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const httpStatus = require("http-status");
@@ -147,8 +148,11 @@ const resetPassword = async(req, res) => {
             config.SECRET_KEY_RESET_PASSWORD
         ).email;
 
+        const salt = await bcrypt.genSaltSync(10, "a");
+        const updatedPassword = bcrypt.hashSync(req.body.password, salt);
+
         const user = await User.update({
-            password: req.body.password,
+            password: updatedPassword,
         }, {
             where: {
                 email: email,
@@ -276,7 +280,6 @@ const upgradeLearner = async(req, res) => {
             },
         });
 
-        console.log(req.params.username);
         if (!user) {
             return res.status(httpStatus.NOT_FOUND).send({
                 message: "user not found",

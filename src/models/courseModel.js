@@ -14,6 +14,13 @@ module.exports = (sequelize, DataTypes) => {
         syllabus: {
             type: DataTypes.STRING,
             allowNull: false,
+            get() {
+                const syllabus = this.getDataValue('syllabus');
+                return syllabus.split("$%&");
+            },
+            set(syllabus) {
+                this.setDataValue('syllabus', syllabus.join("$%&"));
+            }
         },
     });
 };
