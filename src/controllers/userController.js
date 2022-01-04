@@ -234,7 +234,7 @@ const getUsers = async(req, res) => {
                 message: "you must be an admin to make this operation ",
             });
         }
-        try {
+        try { 
             const users = await User.findAll({
                 where: { type: ["learner", "instructor"] },
                 attributes: ["username", "type"],
@@ -243,7 +243,7 @@ const getUsers = async(req, res) => {
             return res.status(httpStatus.OK).send(users);
         } catch (error) {
             return res.status(httpStatus.NOT_FOUND).send({
-                message: "error featching users",
+                message: "error fetching users",
             });
         }
     });
