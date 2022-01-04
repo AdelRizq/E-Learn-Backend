@@ -236,6 +236,7 @@ const getUsers = async(req, res) => {
         }
         try {
             const users = await User.findAll({
+                where: { type: ["learner", "instructor"] },
                 attributes: ["username", "type"],
             });
 
