@@ -43,7 +43,7 @@ const signup = async(req, res) => {
         });
     } catch (error) {
         return res.status(httpStatus.BAD_REQUEST).send({
-            message: "The server could not understand the request due to invalid syntax.",
+            message: "Please try different username or email",
         });
     }
 };
