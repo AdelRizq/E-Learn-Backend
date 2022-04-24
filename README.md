@@ -66,4 +66,4 @@ Contributions are what make the open source community such an amazing place to b
 
 ## License
 
-> This software is licensed under MIT License, See [License](https://github.com/Mahboub99/E-Learn-Backend/blob/master/LICENSE) for more information.
+> This software is licensed under MIT License, See [License](https://github.com/AdelRizq/E-Learn-Backend/blob/main/LICENSE) for more information.
